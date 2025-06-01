@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brittany's 22nd Birthday Photo Booth</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #332219;
+            border: 20px solid #332219;
+        }
+
+        .cowboy-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('cowboy.png') center/cover no-repeat;
+            opacity: 0.12;
+            z-index: 1;
+        }
+
+        .content-bg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: #ebdaba;
+            z-index: 2;
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+        }
+
+        .title {
+            margin-bottom: 40px;
+        }
+
+        .brittanys {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            color: #332219;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .twenty-second {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: #332219;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .bday {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            color: #332219;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #8B4513, #A0522D, #CD853F);
+            border: none;
+            padding: 15px 40px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Camera Page Styles */
+        .light-bg {
+            background: #D2B48C;
+            opacity: 0.3;
+        }
+
+        .camera-container {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .camera-screen {
+            width: 400px;
+            height: 300px;
+            border: 8px solid #332219;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+        }
+
+        .camera-screen.large {
+            width: 600px;
+            height: 450px;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .filter-btn {
+            background: linear-gradient(135deg, #8B4513, #A0522D);
+            border: none;
+            padding: 12px 25px;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #CD853F, #DEB887);
+            color: #332219;
+        }
+
+        .countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            color: white;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            z-index: 10;
+            display: none;
+        }
+
+        .photo-counter {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: #332219;
+            margin-top: 20px;
+        }
+
+        /* Photo Strip Page */
+        .strip-container {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .photo-strip {
+            width: 200px;
+            height: 600px;
+            background: #332219;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .strip-bg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            background: url('background.png') center/cover no-repeat;
+            opacity: 0.08;
+        }
+
+        .strip-photos {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .strip-photo {
+            flex: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .strip-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .strip-title {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 3;
+        }
+
+        .strip-title .brittanys {
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .strip-title .twenty-second {
+            font-size: 1rem;
+            color: white;
+        }
+
+        .strip-title .bday {
+            font-size: 0.8rem;
+            color: white;
+            letter-spacing: 2px;
+        }
+
+        .phone-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .phone-input {
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 3px solid #332219;
+            border-radius: 8px;
+            background: #ebdaba;
+            width: 250px;
+            text-align: center;
+            font-family: 'Cinzel', serif;
+        }
+
+        .phone-input::placeholder {
+            color: #8B4513;
+        }
+
+        /* CSS Filters */
+        .sepia-filter {
+            filter: sepia(1) contrast(1.2) brightness(1.1);
+        }
+
+        .vintage-filter {
+            filter: sepia(0.8) contrast(1.3) brightness(0.9) hue-rotate(15deg);
+        }
+
+        .western-filter {
+            filter: sepia(0.6) contrast(1.4) brightness(1.1) saturate(1.3) hue-rotate(25deg);
+        }
+
+        .flash-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .flash-overlay.flash {
+            animation: flashEffect 0.3s ease-out;
+        }
+
+        @keyframes flashEffect {
+            0% { opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+
+        canvas {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .brittanys { font-size: 3rem; }
+            .twenty-second { font-size: 2.5rem; }
+            .bday { font-size: 2rem; }
+            .camera-screen { width: 300px; height: 225px; }
+            .camera-screen.large { width: 400px; height: 300px; }
+            .countdown { font-size: 6rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Page -->
+    <div class="page active" id="startPage">
+        <div class="background">
+            <div class="cowboy-bg"></div>
+            <div class="content-bg"></div>
+        </div>
+        <div class="main-content">
+            <div class="title">
+                <div class="brittanys">Brittanys</div>
+                <div class="twenty-second">22nd</div>
+                <div class="bday">BDAY</div>
+            </div>
+            <button class="btn" onclick="startPhotoSession()">START</button>
+        </div>
+        <div class="flash-overlay" id="flashOverlay"></div>
+    </div>
+
+    <!-- Filter Selection Page -->
+    <div class="page" id="filterPage">
+        <div class="background">
+            <div class="cowboy-bg light-bg"></div>
+            <div class="content-bg"></div>
+        </div>
+        <div class="camera-container">
+            <div class="camera-screen">
+                <video id="video" autoplay muted playsinline></video>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="setFilter('none')">Original</button>
+                <button class="filter-btn" onclick="setFilter('sepia')">Sepia</button>
+                <button class="filter-btn" onclick="setFilter('vintage')">Vintage</button>
+                <button class="filter-btn" onclick="setFilter('western')">Western</button>
+            </div>
+            <button class="btn" onclick="startCountdown()">CONTINUE</button>
+        </div>
+        <div class="flash-overlay"></div>
+    </div>
+
+    <!-- Photo Capture Page -->
+    <div class="page" id="capturePage">
+        <div class="background">
+            <div class="cowboy-bg light-bg"></div>
+            <div class="content-bg"></div>
+        </div>
+        <div class="camera-container">
+            <div class="camera-screen large">
+                <video id="captureVideo" autoplay muted playsinline></video>
+                <div class="countdown" id="countdown">3</div>
+            </div>
+            <div class="photo-counter" id="photoCounter">Photo 1 of 3</div>
+        </div>
+        <div class="flash-overlay"></div>
+    </div>
+
+    <!-- Photo Strip Page -->
+    <div class="page" id="stripPage">
+        <div class="background">
+            <div class="cowboy-bg light-bg"></div>
+            <div class="content-bg"></div>
+        </div>
+        <div class="strip-container">
+            <div class="photo-strip">
+                <div class="strip-bg"></div>
+                <div class="strip-title">
+                    <div class="brittanys">Brittanys</div>
+                    <div class="twenty-second">22nd</div>
+                    <div class="bday">BDAY</div>
+                </div>
+                <div class="strip-photos">
+                    <div class="strip-photo" id="stripPhoto1"></div>
+                    <div class="strip-photo" id="stripPhoto2"></div>
+                    <div class="strip-photo" id="stripPhoto3"></div>
+                </div>
+            </div>
+            <div class="phone-input-container">
+                <input type="tel" class="phone-input" id="phoneInput" placeholder="Enter Phone Number">
+                <button class="btn" onclick="sendPhotoStrip()">SEND PHOTOS</button>
+                <button class="btn" onclick="restartSession()">DONE</button>
+            </div>
+        </div>
+        <div class="flash-overlay"></div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        let currentFilter = 'none';
+        let capturedPhotos = [];
+        let photoCount = 0;
+        let stream = null;
+
+        // Audio elements
+        const beepSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAAA==');
+        const cameraSound = new Audio('data:audio/wav;base64,UklGRnIGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU4GAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAA==');
+
+        async function startPhotoSession() {
+            document.getElementById('startPage').classList.remove('active');
+            document.getElementById('filterPage').classList.add('active');
+            
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: 1920, 
+                        height: 1080,
+                        facingMode: 'user'
+                    } 
+                });
+                document.getElementById('video').srcObject = stream;
+                document.getElementById('captureVideo').srcObject = stream;
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Unable to access camera. Please ensure camera permissions are granted.');
+            }
+        }
+
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            const video = document.getElementById('video');
+            const captureVideo = document.getElementById('captureVideo');
+            
+            // Remove all filter classes
+            video.className = '';
+            captureVideo.className = '';
+            
+            // Add selected filter
+            if (filterType !== 'none') {
+                video.classList.add(filterType + '-filter');
+                captureVideo.classList.add(filterType + '-filter');
+            }
+            
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function startCountdown() {
+            document.getElementById('filterPage').classList.remove('active');
+            document.getElementById('capturePage').classList.add('active');
+            
+            photoCount = 0;
+            capturedPhotos = [];
+            takeNextPhoto();
+        }
+
+        function takeNextPhoto() {
+            photoCount++;
+            document.getElementById('photoCounter').textContent = `Photo ${photoCount} of 3`;
+            
+            let countdownNum = 3;
+            const countdownEl = document.getElementById('countdown');
+            countdownEl.style.display = 'block';
+            countdownEl.textContent = countdownNum;
+            
+            const countdownInterval = setInterval(() => {
+                beepSound.currentTime = 0;
+                beepSound.play().catch(e => console.log('Audio play failed:', e));
+                
+                countdownNum--;
+                if (countdownNum > 0) {
+                    countdownEl.textContent = countdownNum;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownEl.style.display = 'none';
+                    capturePhoto();
+                }
+            }, 1000);
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('captureVideo');
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Apply filter to canvas
+            if (currentFilter !== 'none') {
+                ctx.filter = getCanvasFilter(currentFilter);
+            }
+            
+            ctx.drawImage(video, 0, 0);
+            
+            // Flash effect
+            const flashOverlay = document.querySelector('#capturePage .flash-overlay');
+            flashOverlay.classList.add('flash');
+            setTimeout(() => flashOverlay.classList.remove('flash'), 300);
+            
+            // Camera sound
+            cameraSound.currentTime = 0;
+            cameraSound.play().catch(e => console.log('Audio play failed:', e));
+            
+            // Store photo
+            const photoData = canvas.toDataURL('image/jpeg', 0.9);
+            capturedPhotos.push(photoData);
+            
+            if (photoCount < 3) {
+                setTimeout(() => takeNextPhoto(), 1500);
+            } else {
+                setTimeout(() => showPhotoStrip(), 3000);
+            }
+        }
+
+        function getCanvasFilter(filterType) {
+            switch(filterType) {
+                case 'sepia':
+                    return 'sepia(1) contrast(1.2) brightness(1.1)';
+                case 'vintage':
+                    return 'sepia(0.8) contrast(1.3) brightness(0.9) hue-rotate(15deg)';
+                case 'western':
+                    return 'sepia(0.6) contrast(1.4) brightness(1.1) saturate(1.3) hue-rotate(25deg)';
+                default:
+                    return 'none';
+            }
+        }
+
+        function showPhotoStrip() {
+            document.getElementById('capturePage').classList.remove('active');
+            document.getElementById('stripPage').classList.add('active');
+            
+            // Display photos in strip
+            for (let i = 0; i < 3; i++) {
+                const stripPhoto = document.getElementById(`stripPhoto${i + 1}`);
+                const img = document.createElement('img');
+                img.src = capturedPhotos[i];
+                stripPhoto.innerHTML = '';
+                stripPhoto.appendChild(img);
+            }
+            
+            // Stop camera stream
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function sendPhotoStrip() {
+            const phoneNumber = document.getElementById('phoneInput').value;
+            if (!phoneNumber) {
+                alert('Please enter a phone number');
+                return;
+            }
+            
+            // Here you would integrate with an SMS service
+            // For demo purposes, we'll just show an alert
+            alert(`Photo strip would be sent to ${phoneNumber}!`);
+        }
+
+        function restartSession() {
+            document.getElementById('stripPage').classList.remove('active');
+            document.getElementById('startPage').classList.add('active');
+            
+            // Reset everything
+            capturedPhotos = [];
+            photoCount = 0;
+            currentFilter = 'none';
+            document.getElementById('phoneInput').value = '';
+            
+            // Reset filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.filter-btn').classList.add('active');
+        }
+
+        // Handle page visibility changes to pause/resume camera
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>
