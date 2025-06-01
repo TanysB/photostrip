@@ -45,6 +45,17 @@
             border: 25px solid #3d2817;
         }
 
+        .cowboy-bg {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            width: calc(100% - 50px);
+            height: calc(100% - 50px);
+            background: url('cowboy.png') center/cover no-repeat;
+            opacity: 0.12;
+            z-index: 1;
+        }
+
         .main-content {
             position: relative;
             z-index: 3;
@@ -53,50 +64,55 @@
         }
 
         .title {
-            margin-bottom: 80px;
+            margin-bottom: 100px;
+            text-shadow: 3px 3px 6px rgba(61, 40, 23, 0.3);
         }
 
         .brittanys {
             font-family: 'Dancing Script', cursive;
-            font-size: 5.5rem;
+            font-size: 7.5rem;
             font-weight: 700;
             color: #3d2817;
-            line-height: 0.9;
-            margin-bottom: -10px;
+            line-height: 0.85;
+            margin-bottom: -15px;
+            text-shadow: 4px 4px 8px rgba(61, 40, 23, 0.4);
         }
 
         .twenty-second {
             font-family: 'Dancing Script', cursive;
-            font-size: 4rem;
-            font-weight: 600;
+            font-size: 5.5rem;
+            font-weight: 700;
             color: #3d2817;
-            line-height: 0.9;
-            margin-bottom: 10px;
+            line-height: 0.85;
+            margin-bottom: 15px;
+            text-shadow: 4px 4px 8px rgba(61, 40, 23, 0.4);
         }
 
         .bday {
             font-family: 'Cinzel', serif;
-            font-size: 4rem;
+            font-size: 5rem;
             color: #3d2817;
             font-weight: 900;
-            letter-spacing: 8px;
+            letter-spacing: 12px;
             text-transform: uppercase;
+            text-shadow: 5px 5px 10px rgba(61, 40, 23, 0.5);
         }
 
         .elegant-btn {
             background: linear-gradient(135deg, #b8a082 0%, #a08968 50%, #8b7355 100%);
             border: none;
-            padding: 20px 60px;
+            padding: 30px 80px;
             font-family: 'Dancing Script', cursive;
-            font-size: 2.2rem;
-            font-weight: 600;
+            font-size: 3rem;
+            font-weight: 700;
             color: #3d2817;
-            border-radius: 50px;
+            border-radius: 60px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(61, 40, 23, 0.3);
+            box-shadow: 0 12px 35px rgba(61, 40, 23, 0.4);
             position: relative;
             overflow: hidden;
+            text-shadow: 2px 2px 4px rgba(61, 40, 23, 0.2);
         }
 
         .elegant-btn::before {
@@ -111,8 +127,8 @@
         }
 
         .elegant-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(61, 40, 23, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(61, 40, 23, 0.5);
         }
 
         .elegant-btn:hover::before {
@@ -379,23 +395,24 @@
 
         /* Responsive Design */
         @media (max-width: 1024px) {
-            .brittanys { font-size: 4.5rem; }
-            .twenty-second { font-size: 3.5rem; }
-            .bday { font-size: 3rem; letter-spacing: 6px; }
+            .brittanys { font-size: 6rem; }
+            .twenty-second { font-size: 4.5rem; }
+            .bday { font-size: 4rem; letter-spacing: 10px; }
             .camera-screen { width: 500px; height: 350px; }
             .camera-screen.large { width: 650px; height: 500px; }
             .countdown { font-size: 10rem; }
-            .elegant-btn { font-size: 2rem; padding: 18px 50px; }
+            .elegant-btn { font-size: 2.5rem; padding: 25px 65px; }
             .filter-btn { font-size: 1.6rem; padding: 12px 30px; }
         }
 
         @media (max-width: 768px) {
-            .brittanys { font-size: 3.5rem; }
-            .twenty-second { font-size: 2.8rem; }
-            .bday { font-size: 2.2rem; letter-spacing: 4px; }
+            .brittanys { font-size: 4.5rem; }
+            .twenty-second { font-size: 3.5rem; }
+            .bday { font-size: 3rem; letter-spacing: 8px; }
             .camera-screen { width: 400px; height: 280px; }
             .camera-screen.large { width: 500px; height: 380px; }
             .countdown { font-size: 8rem; }
+            .elegant-btn { font-size: 2rem; padding: 20px 50px; }
             .strip-container { flex-direction: column; gap: 40px; }
             .photo-strip { width: 200px; height: 600px; }
         }
@@ -404,7 +421,9 @@
 <body>
     <!-- Start Page -->
     <div class="page active" id="startPage">
-        <div class="background"></div>
+        <div class="background">
+            <div class="cowboy-bg"></div>
+        </div>
         <div class="main-content">
             <div class="title">
                 <div class="brittanys">Brittanys</div>
@@ -418,7 +437,9 @@
 
     <!-- Filter Selection Page -->
     <div class="page" id="filterPage">
-        <div class="background"></div>
+        <div class="background">
+            <div class="cowboy-bg"></div>
+        </div>
         <div class="camera-container">
             <div class="camera-screen">
                 <video id="video" autoplay muted playsinline></video>
@@ -435,7 +456,9 @@
 
     <!-- Photo Capture Page -->
     <div class="page" id="capturePage">
-        <div class="background"></div>
+        <div class="background">
+            <div class="cowboy-bg"></div>
+        </div>
         <div class="camera-container">
             <div class="camera-screen large">
                 <video id="captureVideo" autoplay muted playsinline></video>
@@ -448,7 +471,9 @@
 
     <!-- Photo Strip Page -->
     <div class="page" id="stripPage">
-        <div class="background"></div>
+        <div class="background">
+            <div class="cowboy-bg"></div>
+        </div>
         <div class="strip-container">
             <div class="photo-strip">
                 <div class="strip-title">
