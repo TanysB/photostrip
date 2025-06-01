@@ -361,12 +361,12 @@
             margin-top: 20px;
         }
 
-        /* Photo Strip Page - iPad Mini Specific Layout */
+        /* Photo Strip Page - iPad Mini Specific Layout (6"×4") */
         .strip-container {
             position: relative;
             z-index: 3;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 2in 4in;
             width: 100vw;
             height: 100vh;
             padding: 0;
@@ -377,25 +377,23 @@
         .phone-input-container {
             display: flex;
             flex-direction: column;
-            gap: 60px;
+            gap: 0.3in;
             align-items: center;
             justify-content: center;
-            padding: 60px;
+            padding: 0.2in;
             background: transparent;
         }
 
         .photo-strip {
             width: 100%;
-            height: 100vh;
+            height: 100%;
             background: #3d2817;
-            border-radius: 25px;
+            border-radius: 15px;
             padding: 0;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 20px 50px rgba(61, 40, 23, 0.6);
+            box-shadow: 0 15px 30px rgba(61, 40, 23, 0.6);
             margin: 0;
-            align-self: stretch;
-            justify-self: stretch;
         }
 
         .strip-bg {
@@ -403,7 +401,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 60px;
+            height: 0.4in;
             background: url('background.png') center/cover no-repeat;
             opacity: 0.1;
             z-index: 1;
@@ -412,21 +410,21 @@
         .strip-photos {
             display: flex;
             flex-direction: column;
-            gap: 25px;
-            height: calc(100vh - 200px);
+            gap: 0.1in;
+            height: 4.5in;
             position: relative;
             z-index: 2;
-            margin-top: 60px;
-            padding: 0 40px;
+            margin-top: 0.4in;
+            padding: 0 0.15in;
         }
 
         .strip-photo {
             flex: 1;
-            border-radius: 15px;
+            border-radius: 8px;
             overflow: hidden;
             background: #000;
-            border: 3px solid #d4b895;
-            min-height: 200px;
+            border: 2px solid #d4b895;
+            height: 1.4in;
         }
 
         .strip-photo img {
@@ -437,57 +435,57 @@
 
         .strip-title {
             position: absolute;
-            bottom: 80px;
-            left: 40px;
+            bottom: 0.6in;
+            left: 0.15in;
             z-index: 3;
             text-align: left;
         }
 
         .strip-title .brittanys {
             font-family: 'Dancing Script', cursive;
-            font-size: 2.2rem;
+            font-size: 0.15in;
             font-weight: 700;
             color: #d4b895;
             line-height: 0.9;
-            margin-bottom: -3px;
+            margin-bottom: -2px;
         }
 
         .strip-title .twenty-second {
             font-family: 'Dancing Script', cursive;
-            font-size: 1.8rem;
+            font-size: 0.12in;
             font-weight: 600;
             color: #d4b895;
             line-height: 0.9;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .strip-title .bday {
             font-family: 'Cinzel', serif;
-            font-size: 1.4rem;
+            font-size: 0.1in;
             color: #d4b895;
             font-weight: 800;
-            letter-spacing: 4px;
+            letter-spacing: 2px;
             text-transform: uppercase;
         }
 
         .strip-cowboy {
             position: absolute;
-            bottom: 30px;
-            left: 40px;
-            right: 40px;
-            height: 40px;
+            bottom: 0.15in;
+            left: 0.15in;
+            right: 0.15in;
+            height: 0.25in;
             background: url('cowboy.png') center/contain no-repeat;
             opacity: 0.12;
             z-index: 1;
         }
 
         .phone-input {
-            padding: 25px;
-            font-size: 1.6rem;
-            border: 3px solid #3d2817;
-            border-radius: 40px;
+            padding: 0.1in;
+            font-size: 0.12in;
+            border: 2px solid #3d2817;
+            border-radius: 20px;
             background: rgba(212, 184, 149, 0.8);
-            width: 300px;
+            width: 1.6in;
             text-align: center;
             font-family: 'Dancing Script', cursive;
             font-weight: 600;
@@ -503,29 +501,29 @@
             outline: none;
             border-color: #8b7355;
             background: rgba(212, 184, 149, 1);
-            box-shadow: 0 0 15px rgba(61, 40, 23, 0.2);
+            box-shadow: 0 0 8px rgba(61, 40, 23, 0.2);
         }
 
         .strip-page-btn {
             background: linear-gradient(135deg, #c9a876 0%, #b8a082 25%, #a08968 50%, #8b7355 75%, #6b4423 100%);
-            border: 3px solid #3d2817;
-            padding: 20px 40px;
+            border: 2px solid #3d2817;
+            padding: 0.08in 0.15in;
             font-family: 'Playfair Display', serif;
-            font-size: 1.6rem;
+            font-size: 0.1in;
             font-weight: 600;
             color: #3d2817;
-            border-radius: 35px;
+            border-radius: 15px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 20px rgba(61, 40, 23, 0.3);
+            box-shadow: 0 4px 10px rgba(61, 40, 23, 0.3);
             text-transform: capitalize;
             letter-spacing: 1px;
-            width: 300px;
+            width: 1.6in;
         }
 
         .strip-page-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 25px rgba(61, 40, 23, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(61, 40, 23, 0.4);
         }
 
         /* CSS Filters */
