@@ -416,8 +416,26 @@
             left: 0;
             width: 100%;
             height: 1.5in;
-            background: red;
-            opacity: 0.8;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(139, 115, 85, 0.3) 8px, transparent 8px),
+                radial-gradient(circle at 80% 80%, rgba(139, 115, 85, 0.3) 8px, transparent 8px),
+                radial-gradient(circle at 40% 40%, rgba(139, 115, 85, 0.2) 6px, transparent 6px),
+                radial-gradient(circle at 60% 60%, rgba(139, 115, 85, 0.2) 6px, transparent 6px),
+                linear-gradient(45deg, 
+                    #8b7355 0%, 
+                    #a08968 20%, 
+                    #c9a876 40%, 
+                    #d4b895 60%, 
+                    #c9a876 80%, 
+                    #8b7355 100%),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(61, 40, 23, 0.1) 2px,
+                    rgba(61, 40, 23, 0.1) 4px
+                );
+            opacity: 0.4;
             z-index: 1;
         }
 
