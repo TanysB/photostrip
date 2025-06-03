@@ -816,9 +816,7 @@
                 </div>
                 <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
                 <div id="statusMessage"></div>
-                <button class="strip-page-btn" onclick="sendPhotoStrip()">Email My Photos</button>
-                <button class="strip-page-btn" onclick="testFunction()">🔧 Test Function</button>
-                <button class="strip-page-btn" onclick="simpleEmailTest()">📧 Simple Email Test</button>
+                <button class="strip-page-btn" onclick="simpleEmailTest()">Email My Photos</button>
                 <button class="strip-page-btn" onclick="restartSession()">Take New Photos</button>
             </div>
         </div>
@@ -1243,7 +1241,7 @@
             }
         });
 
-        // Simple email test without photo strip
+        // Main email function - sends individual photos instead of photo strip
         async function simpleEmailTest() {
             const emailInput = document.getElementById('emailInput');
             const email = emailInput.value.trim();
@@ -1253,50 +1251,68 @@
                 return;
             }
 
-            if (typeof emailjs === 'undefined') {
-                showStatusMessage('❌ EmailJS not loaded!', 'error');
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showStatusMessage('Please enter a valid email address', 'error');
                 return;
             }
 
-            console.log('🔧 SIMPLE TEST: Attempting basic email send to:', email);
+            // Check if photos exist
+            if (!capturedPhotos || capturedPhotos.length === 0) {
+                showStatusMessage('No photos to send. Take some photos first!', 'error');
+                return;
+            }
+
+            if (typeof emailjs === 'undefined') {
+                showStatusMessage('❌ Email service not loaded! Please refresh the page.', 'error');
+                return;
+            }
+
+            console.log('📧 Sending photos to:', email);
             
             const button = event.target;
             const originalText = button.textContent;
             button.disabled = true;
-            button.textContent = 'Testing...';
+            button.textContent = 'Sending...';
+            
+            showStatusMessage('Sending your photos via email...', 'info');
             
             try {
                 const result = await emailjs.send(
                     'service_9n5lgms',
                     'template_js58xgg',
                     {
-                        to_email: email,  // This should make it dynamic
+                        to_email: email,
                         to_name: email.split('@')[0],
-                        from_name: 'Photo Booth Test',
-                        subject: 'Test Email from Photo Booth',
-                        message: 'This is a test email to verify EmailJS is working with dynamic recipients.',
-                        photo_strip: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=',
-                        photo1: '',
-                        photo2: '',
-                        photo3: ''
+                        from_name: "Brittany's 22nd Birthday Party",
+                        subject: "🎉 Your Photo Booth Pictures from Brittany's 22nd Birthday!",
+                        message: `Hi there!\n\nThanks for celebrating Brittany's 22nd birthday with us! 🎂\n\nHere are your awesome photo booth pictures from the party. We hope you had as much fun taking them as we did setting up the booth!\n\nKeep celebrating! 🥳\n\n- Brittany's Birthday Team`,
+                        photo_strip: capturedPhotos[0]?.data || '', // Use first photo as main image
+                        photo1: capturedPhotos[0]?.data || '',
+                        photo2: capturedPhotos[1]?.data || '',
+                        photo3: capturedPhotos[2]?.data || ''
                     }
                 );
                 
-                console.log('✅ Simple email test successful to:', email, result);
-                showStatusMessage(`✅ Test email sent to ${email}! Check your inbox.`, 'success');
+                console.log('✅ Photos sent successfully to:', email, result);
+                showStatusMessage(`🎉 Photos successfully sent to ${email}! Check your inbox!`, 'success');
+                
+                // Clear email input on success
+                emailInput.value = '';
                 
             } catch (error) {
-                console.error('❌ Simple email test failed:', error);
+                console.error('❌ Email sending failed:', error);
                 
-                let errorMsg = 'Test email failed: ';
+                let errorMsg = 'Failed to send photos: ';
                 if (error.status === 401) {
-                    errorMsg += 'Authentication failed - check your EmailJS keys';
+                    errorMsg += 'Authentication failed. Please try again.';
                 } else if (error.status === 402) {
-                    errorMsg += 'Monthly quota exceeded';
+                    errorMsg += 'Monthly email limit reached.';
                 } else if (error.text) {
                     errorMsg += error.text;
                 } else {
-                    errorMsg += error.message || 'Unknown error';
+                    errorMsg += 'Please check your internet connection and try again.';
                 }
                 
                 showStatusMessage(errorMsg, 'error');
@@ -1307,8 +1323,6 @@
         }
 
         // Make functions available globally for onclick handlers
-        window.sendPhotoStrip = sendPhotoStrip;
-        window.testFunction = testFunction;
         window.simpleEmailTest = simpleEmailTest;
     </script>
 </body>
