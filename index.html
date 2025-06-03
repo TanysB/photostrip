@@ -780,8 +780,8 @@
                     Get your photo strip via email!
                 </div>
                 <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
-                <button class="strip-page-btn" onclick="sendPhotoStrip()">Email My Photos</button>
-                <button class="strip-page-btn" onclick="testFunction()">🔧 Test Function</button>
+                <button class="strip-page-btn" onclick="window.sendPhotoStrip(); return false;">Email My Photos</button>
+                <button class="strip-page-btn" onclick="window.testFunction(); return false;">🔧 Test Function</button>
                 <button class="strip-page-btn" onclick="restartSession()">Take New Photos</button>
             </div>
         </div>
