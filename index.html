@@ -574,6 +574,13 @@
             box-shadow: 0 6px 15px rgba(61, 40, 23, 0.4);
         }
 
+        .strip-page-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 10px rgba(61, 40, 23, 0.3);
+        }
+
         /* CSS Filters */
         .sepia-filter {
             filter: sepia(1) contrast(1.2) brightness(1.1);
@@ -652,6 +659,34 @@
 
         canvas {
             display: none;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+            border: 2px solid #4caf50;
+        }
+
+        .status-error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #c62828;
+            border: 2px solid #f44336;
+        }
+
+        .status-info {
+            background: rgba(33, 150, 243, 0.2);
+            color: #1565c0;
+            border: 2px solid #2196f3;
         }
 
         /* iPad Mini Specific Optimizations */
@@ -780,8 +815,9 @@
                     Get your photo strip via email!
                 </div>
                 <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
-                <button class="strip-page-btn" onclick="window.sendPhotoStrip(); return false;">Email My Photos</button>
-                <button class="strip-page-btn" onclick="window.testFunction(); return false;">🔧 Test Function</button>
+                <div id="statusMessage"></div>
+                <button class="strip-page-btn" onclick="sendPhotoStrip()">Email My Photos</button>
+                <button class="strip-page-btn" onclick="testFunction()">🔧 Test Function</button>
                 <button class="strip-page-btn" onclick="restartSession()">Take New Photos</button>
             </div>
         </div>
@@ -789,6 +825,17 @@
     </div>
 
     <canvas id="canvas"></canvas>
+
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        // Initialize EmailJS with your public key
+        (function() {
+            emailjs.init({
+                publicKey: "o9F_uYO6T0n9C7ngK",
+            });
+        })();
+    </script>
 
     <script>
         let currentFilter = 'none';
@@ -799,6 +846,19 @@
         // Audio elements
         const beepSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAAA==');
         const cameraSound = new Audio('data:audio/wav;base64,UklGRnIGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU4GAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAA==');
+
+        // Status message helper function
+        function showStatusMessage(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
 
         async function startPhotoSession() {
             document.getElementById('startPage').classList.remove('active');
@@ -961,16 +1021,224 @@
             }
         }
 
-        function sendPhotoStrip() {
-            const phoneNumber = document.getElementById('phoneInput').value;
-            if (!phoneNumber) {
-                alert('Please enter a phone number');
+        // Enhanced email function with EmailJS integration
+        async function sendPhotoStrip() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            // Validate email
+            if (!email) {
+                showStatusMessage('Please enter an email address', 'error');
                 return;
             }
             
-            // Here you would integrate with an SMS service
-            // For demo purposes, we'll just show an alert
-            alert(`Photo strip would be sent to ${phoneNumber}!`);
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showStatusMessage('Please enter a valid email address', 'error');
+                return;
+            }
+            
+            // Check if photos exist
+            if (!capturedPhotos || capturedPhotos.length === 0) {
+                showStatusMessage('No photos to send. Take some photos first!', 'error');
+                return;
+            }
+            
+            // Disable button while sending
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Sending...';
+            
+            showStatusMessage('Capturing photo strip and sending email...', 'info');
+            
+            try {
+                // Capture the exact photo strip as displayed
+                const photoStripDataURL = await capturePhotoStripAsDisplayed();
+                
+                // Prepare email template parameters
+                const templateParams = {
+                    to_email: email,
+                    to_name: email.split('@')[0], // Use part before @ as name
+                    from_name: "Brittany's 22nd Birthday Party",
+                    subject: "🎉 Your Photo Booth Pictures from Brittany's 22nd Birthday!",
+                    message: `Hi there!\n\nThanks for celebrating Brittany's 22nd birthday with us! 🎂\n\nAttached is your photo booth strip from the party, exactly as it appeared on screen! We hope you had as much fun taking these pictures as we did setting up the booth!\n\nKeep celebrating! 🥳\n\n- Brittany's Birthday Team`,
+                    photo_strip: photoStripDataURL,
+                    photo1: capturedPhotos[0]?.data || '',
+                    photo2: capturedPhotos[1]?.data || '',
+                    photo3: capturedPhotos[2]?.data || ''
+                };
+
+                // Send email using EmailJS
+                const result = await emailjs.send(
+                    'service_9n5lgms',      // Your service ID
+                    'template_js58xgg',     // Your template ID
+                    templateParams
+                );
+
+                console.log('Email sent successfully:', result);
+                showStatusMessage(`🎉 Photo strip successfully sent to ${email}! Check your inbox!`, 'success');
+                
+                // Clear email input on success
+                emailInput.value = '';
+                
+            } catch (error) {
+                console.error('Email sending failed:', error);
+                showStatusMessage('Failed to send email. Please try again or check your internet connection.', 'error');
+            } finally {
+                // Re-enable button
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        // Capture the photo strip exactly as it appears on screen
+        async function capturePhotoStripAsDisplayed() {
+            return new Promise((resolve, reject) => {
+                try {
+                    const photoStripElement = document.querySelector('.photo-strip');
+                    
+                    if (!photoStripElement) {
+                        reject(new Error('Photo strip element not found'));
+                        return;
+                    }
+
+                    // Create a canvas to capture the photo strip
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Get the computed style and dimensions of the photo strip
+                    const stripRect = photoStripElement.getBoundingClientRect();
+                    const scale = window.devicePixelRatio || 1;
+                    
+                    // Set canvas dimensions to match the photo strip (accounting for scaling)
+                    canvas.width = stripRect.width * scale;
+                    canvas.height = stripRect.height * scale;
+                    
+                    // Scale the context to ensure correct drawing operations
+                    ctx.scale(scale, scale);
+                    
+                    // Fill with the photo strip background color
+                    ctx.fillStyle = '#3d2817';
+                    ctx.fillRect(0, 0, stripRect.width, stripRect.height);
+                    
+                    // Draw decorative elements first
+                    drawPhotoStripDecorations(ctx, stripRect.width, stripRect.height);
+                    
+                    // Wait for all images to be ready, then draw them
+                    const photos = photoStripElement.querySelectorAll('.strip-photo img');
+                    let imagesLoaded = 0;
+                    
+                    if (photos.length === 0) {
+                        // No photos to load, just resolve with decorations
+                        resolve(canvas.toDataURL('image/jpeg', 0.9));
+                        return;
+                    }
+                    
+                    photos.forEach((img, index) => {
+                        if (img.complete && img.naturalHeight !== 0) {
+                            // Image is already loaded
+                            drawPhotoToCanvas(ctx, img, index, stripRect.width, stripRect.height);
+                            imagesLoaded++;
+                            
+                            if (imagesLoaded === photos.length) {
+                                // Add title text last
+                                drawPhotoStripTitle(ctx, stripRect.width, stripRect.height);
+                                resolve(canvas.toDataURL('image/jpeg', 0.9));
+                            }
+                        } else {
+                            // Wait for image to load
+                            const tempImg = new Image();
+                            tempImg.onload = () => {
+                                drawPhotoToCanvas(ctx, tempImg, index, stripRect.width, stripRect.height);
+                                imagesLoaded++;
+                                
+                                if (imagesLoaded === photos.length) {
+                                    // Add title text last
+                                    drawPhotoStripTitle(ctx, stripRect.width, stripRect.height);
+                                    resolve(canvas.toDataURL('image/jpeg', 0.9));
+                                }
+                            };
+                            tempImg.onerror = () => {
+                                console.warn(`Failed to load photo ${index + 1}`);
+                                imagesLoaded++;
+                                
+                                if (imagesLoaded === photos.length) {
+                                    drawPhotoStripTitle(ctx, stripRect.width, stripRect.height);
+                                    resolve(canvas.toDataURL('image/jpeg', 0.9));
+                                }
+                            };
+                            tempImg.src = img.src;
+                        }
+                    });
+                    
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        // Draw photo strip decorative elements
+        function drawPhotoStripDecorations(ctx, width, height) {
+            // Draw the stars at the bottom
+            ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
+            ctx.font = '12px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', width / 2, height - 10);
+        }
+
+        // Draw individual photo to canvas
+        function drawPhotoToCanvas(ctx, img, index, stripWidth, stripHeight) {
+            // Calculate photo dimensions and position based on CSS layout
+            const photoMargin = stripWidth * 0.05; // 5% margin on each side
+            const photoWidth = stripWidth - (photoMargin * 2);
+            const photoHeight = stripHeight * 0.28; // Each photo takes about 28% of strip height
+            const photoY = (stripHeight * 0.08) + (index * (photoHeight + (stripHeight * 0.02))); // Start at 8% from top, with 2% spacing
+            
+            // Draw photo border
+            ctx.fillStyle = '#d4b895';
+            ctx.fillRect(photoMargin - 2, photoY - 2, photoWidth + 4, photoHeight + 4);
+            
+            // Draw the photo
+            ctx.drawImage(img, photoMargin, photoY, photoWidth, photoHeight);
+        }
+
+        // Draw photo strip title
+        function drawPhotoStripTitle(ctx, width, height) {
+            const titleY = height * 0.75; // Position title at 75% down the strip
+            
+            ctx.fillStyle = '#d4b895';
+            ctx.textAlign = 'left';
+            
+            // Brittany's
+            ctx.font = 'bold 24px Dancing Script, cursive';
+            ctx.fillText("Brittanys", width * 0.1, titleY);
+            
+            // 22nd
+            ctx.font = 'bold 22px Dancing Script, cursive';
+            ctx.fillText("22nd", width * 0.1, titleY + 25);
+            
+            // BDAY
+            ctx.font = 'bold 20px Cinzel, serif';
+            ctx.fillText("BDAY", width * 0.1, titleY + 50);
+        }
+
+        // Test function for debugging
+        function testFunction() {
+            console.log('Test function called!');
+            console.log('Current photos:', capturedPhotos.length);
+            console.log('Current filter:', currentFilter);
+            
+            showStatusMessage('Test function executed! Check browser console for details.', 'info');
+            
+            // Test email validation
+            const emailInput = document.getElementById('emailInput');
+            if (emailInput.value) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const isValid = emailRegex.test(emailInput.value.trim());
+                showStatusMessage(`Email validation: ${isValid ? 'Valid' : 'Invalid'}`, isValid ? 'success' : 'error');
+            }
         }
 
         function restartSession() {
@@ -981,7 +1249,8 @@
             capturedPhotos = [];
             photoCount = 0;
             currentFilter = 'none';
-            document.getElementById('phoneInput').value = '';
+            document.getElementById('emailInput').value = '';
+            document.getElementById('statusMessage').style.display = 'none';
             
             // Reset filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -994,6 +1263,10 @@
                 stream.getTracks().forEach(track => track.stop());
             }
         });
+
+        // Make functions available globally for onclick handlers
+        window.sendPhotoStrip = sendPhotoStrip;
+        window.testFunction = testFunction;
     </script>
 </body>
 </html>
