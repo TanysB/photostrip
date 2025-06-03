@@ -1056,8 +1056,125 @@
             }
         }
 
-        // COMPLETELY REWRITTEN EMAIL FUNCTION - Now uses actual photo data
-        async function sendPhotosViaEmail() {
+        // CLOUD STORAGE + EMAIL LINK FUNCTION (BEST QUALITY OPTION)
+        async function sendPhotosViaCloudLink() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showStatusMessage('Please enter an email address', 'error');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showStatusMessage('Please enter a valid email address', 'error');
+                return;
+            }
+
+            if (!capturedPhotos || capturedPhotos.length === 0) {
+                showStatusMessage('No photos to send. Take some photos first!', 'error');
+                return;
+            }
+
+            const sessionPhotos = capturedPhotos.filter(photo => photo.sessionId === sessionId);
+            if (sessionPhotos.length === 0) {
+                showStatusMessage('No photos found for current session. Please take new photos.', 'error');
+                return;
+            }
+
+            if (typeof emailjs === 'undefined') {
+                showStatusMessage('❌ Email service not loaded! Please refresh the page.', 'error');
+                return;
+            }
+
+            console.log('🚀 Creating MAXIMUM QUALITY photo strip for cloud upload');
+            
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Creating Max Quality...';
+            
+            showStatusMessage('Creating maximum quality photo strip...', 'info');
+            
+            try {
+                // Create MAXIMUM quality photo strip
+                const photoStripImage = await createPhotoStripFromCapturedPhotos(sessionPhotos);
+                const sizeKB = Math.round(photoStripImage.length * 0.75 / 1024);
+                
+                button.textContent = 'Uploading to Cloud...';
+                showStatusMessage(`Uploading ${sizeKB}KB high-quality image to cloud storage...`, 'info');
+                
+                // Upload to cloud storage (using a free service like ImgBB)
+                const cloudUrl = await uploadToImgBB(photoStripImage);
+                
+                button.textContent = 'Sending Email...';
+                showStatusMessage('Sending email with download link...', 'info');
+                
+                // Send email with cloud download link
+                const result = await emailjs.send(
+                    'service_9n5lgms',
+                    'template_js58xgg',
+                    {
+                        to_email: email,
+                        to_name: email.split('@')[0],
+                        from_name: "Brittany's 22nd Birthday Party",
+                        subject: `🎉 Your HIGH QUALITY Photo Strip from Brittany's 22nd Birthday!`,
+                        message: `Your maximum quality photo strip is ready! Download it here: ${cloudUrl}`,
+                        photo_strip: '', // Empty since we're using cloud link
+                        download_link: cloudUrl,
+                        photo1: '',
+                        photo2: '',
+                        photo3: ''
+                    }
+                );
+                
+                console.log('✅ Email with cloud link sent successfully to:', email);
+                showStatusMessage(`🎉 High-quality photo strip link sent to ${email}! Check your inbox for the download link!`, 'success');
+                
+                emailInput.value = '';
+                
+            } catch (error) {
+                console.error('❌ Cloud upload/email failed:', error);
+                
+                // Fallback to direct email if cloud fails
+                showStatusMessage('Cloud upload failed, trying direct email...', 'info');
+                await sendPhotosViaEmailDirect();
+                
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        // Upload to ImgBB (free image hosting service)
+        async function uploadToImgBB(imageData) {
+            const apiKey = 'bdf1c2af56f0d59fd7b9db9ba26401f4'; // Free ImgBB API key
+            
+            // Convert base64 to blob
+            const base64Data = imageData.split(',')[1];
+            
+            const formData = new FormData();
+            formData.append('image', base64Data);
+            formData.append('key', apiKey);
+            
+            const response = await fetch('https://api.imgbb.com/1/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log('🌟 Image uploaded to cloud:', result.data.url);
+                return result.data.url;
+            } else {
+                throw new Error('Cloud upload failed');
+            }
+        }
+
+        // Fallback function for direct email (original method)
+        async function sendPhotosViaEmailDirect() {
             const emailInput = document.getElementById('emailInput');
             const email = emailInput.value.trim();
             
@@ -1165,9 +1282,9 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // Set canvas size (balanced for quality vs size)
-                    canvas.width = 300;  // Increased from 200 for better quality
-                    canvas.height = 900; // Increased from 600 for better quality
+                    // Set canvas size (MAXIMUM QUALITY - no email size limits!)
+                    canvas.width = 600;  // Even larger for maximum quality
+                    canvas.height = 1800; // Full high resolution
                     
                     // Fill background (dark brown like the photo strip)
                     ctx.fillStyle = '#3d2817';
@@ -1208,12 +1325,12 @@
                     ctx.textAlign = 'center';
                     ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
                     
-                    // Draw the actual captured photos (better quality)
+                    // Draw the actual captured photos (MAXIMUM QUALITY)
                     let photosProcessed = 0;
-                    const photoWidth = canvas.width - 40; // Better margins
-                    const photoHeight = 180; // Increased height for better quality
-                    const startY = 30;
-                    const photoSpacing = 15;
+                    const photoWidth = canvas.width - 80; // Perfect margins
+                    const photoHeight = 400; // Large photos for maximum quality
+                    const startY = 60;
+                    const photoSpacing = 30;
                     
                     // Process each photo
                     photos.forEach((photoData, index) => {
@@ -1234,21 +1351,18 @@
                             photosProcessed++;
                             console.log(`📸 Added photo ${index + 1} to strip (filter: ${photoData.filter})`);
                             
-                            // When all photos are processed, return the final image
+                            // When all photos are processed, return MAXIMUM QUALITY image
                             if (photosProcessed === Math.min(photos.length, 3)) {
-                                console.log('📸 Photo strip creation complete');
-                                // Higher quality but still email-friendly
-                                const finalImage = canvas.toDataURL('image/jpeg', 0.4); // Increased to 40% quality
-                                console.log('📸 Final photo strip size:', finalImage.length, 'characters');
+                                console.log('📸 Photo strip creation complete - MAXIMUM QUALITY MODE');
+                                // MAXIMUM quality - no size limits with cloud storage
+                                const finalImage = canvas.toDataURL('image/jpeg', 0.95); // 95% quality!
+                                const sizeKB = Math.round(finalImage.length * 0.75 / 1024);
+                                console.log('📸 Final photo strip size:', finalImage.length, 'characters', '≈', sizeKB, 'KB');
                                 
-                                // Check size and adjust if needed
-                                if (finalImage.length > 70000) { // Slightly higher limit
-                                    console.log('📸 Still too large, reducing quality slightly...');
-                                    const mediumImage = canvas.toDataURL('image/jpeg', 0.3); // 30% quality fallback
-                                    resolve(mediumImage);
-                                } else {
-                                    resolve(finalImage);
-                                }
+                                console.log('🚀 MAXIMUM QUALITY: Image is', sizeKB, 'KB - using cloud storage for best quality');
+                                showStatusMessage(`🚀 Maximum quality image created (${sizeKB}KB) - uploading to cloud...`, 'info');
+                                
+                                resolve(finalImage);
                             }
                         };
                         
@@ -1258,13 +1372,9 @@
                             
                             // Continue even if some photos fail
                             if (photosProcessed === Math.min(photos.length, 3)) {
-                                const finalImage = canvas.toDataURL('image/jpeg', 0.4);
-                                if (finalImage.length > 70000) {
-                                    const mediumImage = canvas.toDataURL('image/jpeg', 0.3);
-                                    resolve(mediumImage);
-                                } else {
-                                    resolve(finalImage);
-                                }
+                                const finalImage = canvas.toDataURL('image/jpeg', 0.8);
+                                console.log('📸 Backup image created - HIGH QUALITY');
+                                resolve(finalImage);
                             }
                         };
                         
@@ -1342,7 +1452,8 @@
         });
 
         // Make functions available globally for onclick handlers
-        window.sendPhotosViaEmail = sendPhotosViaEmail;
+        window.sendPhotosViaEmail = sendPhotosViaCloudLink; // Use cloud method as primary
+        window.sendPhotosViaEmailDirect = sendPhotosViaEmailDirect; // Keep direct as backup
         window.startPhotoSession = startPhotoSession;
         window.setFilter = setFilter;
         window.startCountdown = startCountdown;
