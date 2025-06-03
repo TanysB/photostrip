@@ -1241,7 +1241,7 @@
             }
         });
 
-        // Main email function - sends individual photos instead of photo strip
+        // Main email function - sends compressed photos
         async function simpleEmailTest() {
             const emailInput = document.getElementById('emailInput');
             const email = emailInput.value.trim();
@@ -1269,16 +1269,28 @@
                 return;
             }
 
-            console.log('📧 Sending photos to:', email);
+            console.log('📧 Compressing and sending photos to:', email);
             
             const button = event.target;
             const originalText = button.textContent;
             button.disabled = true;
-            button.textContent = 'Sending...';
+            button.textContent = 'Compressing...';
             
-            showStatusMessage('Sending your photos via email...', 'info');
+            showStatusMessage('Compressing photos for email...', 'info');
             
             try {
+                // Compress all photos to reduce file size
+                const compressedPhotos = await Promise.all(
+                    capturedPhotos.map(photo => compressImage(photo.data, 0.3, 600, 600))
+                );
+                
+                console.log('📧 Photos compressed, sending email...');
+                button.textContent = 'Sending...';
+                showStatusMessage('Sending your photos via email...', 'info');
+                
+                // Create a simple photo strip from the first photo
+                const photoStrip = await createSimplePhotoStrip(compressedPhotos);
+                
                 const result = await emailjs.send(
                     'service_9n5lgms',
                     'template_js58xgg',
@@ -1288,14 +1300,14 @@
                         from_name: "Brittany's 22nd Birthday Party",
                         subject: "🎉 Your Photo Booth Pictures from Brittany's 22nd Birthday!",
                         message: `Hi there!\n\nThanks for celebrating Brittany's 22nd birthday with us! 🎂\n\nHere are your awesome photo booth pictures from the party. We hope you had as much fun taking them as we did setting up the booth!\n\nKeep celebrating! 🥳\n\n- Brittany's Birthday Team`,
-                        photo_strip: capturedPhotos[0]?.data || '', // Use first photo as main image
-                        photo1: capturedPhotos[0]?.data || '',
-                        photo2: capturedPhotos[1]?.data || '',
-                        photo3: capturedPhotos[2]?.data || ''
+                        photo_strip: photoStrip,
+                        photo1: compressedPhotos[0] || '',
+                        photo2: compressedPhotos[1] || '',
+                        photo3: compressedPhotos[2] || ''
                     }
                 );
                 
-                console.log('✅ Photos sent successfully to:', email, result);
+                console.log('✅ Photos sent successfully to:', email);
                 showStatusMessage(`🎉 Photos successfully sent to ${email}! Check your inbox!`, 'success');
                 
                 // Clear email input on success
@@ -1305,7 +1317,9 @@
                 console.error('❌ Email sending failed:', error);
                 
                 let errorMsg = 'Failed to send photos: ';
-                if (error.status === 401) {
+                if (error.message?.includes('50')) {
+                    errorMsg += 'Photos are still too large. Try taking new photos.';
+                } else if (error.status === 401) {
                     errorMsg += 'Authentication failed. Please try again.';
                 } else if (error.status === 402) {
                     errorMsg += 'Monthly email limit reached.';
@@ -1320,6 +1334,96 @@
                 button.disabled = false;
                 button.textContent = originalText;
             }
+        }
+
+        // Compress image to reduce file size for email
+        function compressImage(dataURL, quality = 0.3, maxWidth = 600, maxHeight = 600) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = () => {
+                    // Calculate new dimensions while maintaining aspect ratio
+                    let { width, height } = img;
+                    
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = (width * maxHeight) / height;
+                            height = maxHeight;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Draw and compress
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedDataURL = canvas.toDataURL('image/jpeg', quality);
+                    
+                    console.log('📧 Compressed image from', dataURL.length, 'to', compressedDataURL.length, 'characters');
+                    resolve(compressedDataURL);
+                };
+                
+                img.src = dataURL;
+            });
+        }
+
+        // Create a simple, small photo strip
+        function createSimplePhotoStrip(compressedPhotos) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Very small dimensions for email
+                canvas.width = 200;
+                canvas.height = 600;
+                
+                // Background
+                ctx.fillStyle = '#3d2817';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Title
+                ctx.fillStyle = '#d4b895';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText("Brittany's 22nd", canvas.width/2, 25);
+                ctx.font = '12px Arial';
+                ctx.fillText("Birthday Party", canvas.width/2, 40);
+                
+                if (compressedPhotos.length > 0) {
+                    let photosDrawn = 0;
+                    const photoSize = 160;
+                    const startY = 60;
+                    
+                    compressedPhotos.forEach((photoData, index) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const y = startY + (index * 170);
+                            ctx.drawImage(img, 20, y, photoSize, 150);
+                            
+                            photosDrawn++;
+                            if (photosDrawn === compressedPhotos.length) {
+                                // Add footer
+                                ctx.fillStyle = '#d4b895';
+                                ctx.font = '10px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.fillText('Thanks for celebrating!', canvas.width/2, canvas.height - 20);
+                                
+                                resolve(canvas.toDataURL('image/jpeg', 0.5));
+                            }
+                        };
+                        img.src = photoData;
+                    });
+                } else {
+                    resolve(canvas.toDataURL('image/jpeg', 0.5));
+                }
+            });
         }
 
         // Make functions available globally for onclick handlers
