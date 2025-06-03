@@ -841,6 +841,7 @@
         let capturedPhotos = [];
         let photoCount = 0;
         let stream = null;
+        let sessionId = Date.now(); // Unique session identifier
 
         // Audio elements
         const beepSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAAA==');
@@ -860,6 +861,10 @@
         }
 
         async function startPhotoSession() {
+            // Generate new session ID
+            sessionId = Date.now();
+            console.log('🎬 Starting new photo session:', sessionId);
+            
             document.getElementById('startPage').classList.remove('active');
             document.getElementById('filterPage').classList.add('active');
             
@@ -903,8 +908,11 @@
             document.getElementById('filterPage').classList.remove('active');
             document.getElementById('capturePage').classList.add('active');
             
+            // Reset for new session
             photoCount = 0;
             capturedPhotos = [];
+            console.log('📸 Starting countdown for session:', sessionId);
+            
             takeNextPhoto();
         }
 
@@ -940,12 +948,20 @@
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
+            // Clear any previous content
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
             // Apply filter to canvas
             if (currentFilter !== 'none') {
                 ctx.filter = getCanvasFilter(currentFilter);
+            } else {
+                ctx.filter = 'none';
             }
             
             ctx.drawImage(video, 0, 0);
+            
+            // Reset filter for next operations
+            ctx.filter = 'none';
             
             // Immediate lens flare effect
             const lensFlare = document.createElement('div');
@@ -962,16 +978,27 @@
             cameraSound.currentTime = 0;
             cameraSound.play().catch(e => console.log('Audio play failed:', e));
             
-            // Store photo with filter info
+            // Store photo with session info and timestamp
             const photoData = canvas.toDataURL('image/jpeg', 0.9);
-            capturedPhotos.push({
+            const photoInfo = {
                 data: photoData,
-                filter: currentFilter
+                filter: currentFilter,
+                sessionId: sessionId,
+                photoNumber: photoCount,
+                timestamp: Date.now()
+            };
+            
+            capturedPhotos.push(photoInfo);
+            console.log(`📸 Captured photo ${photoCount}/3 for session ${sessionId}:`, {
+                filter: currentFilter,
+                dataLength: photoData.length,
+                timestamp: photoInfo.timestamp
             });
             
             if (photoCount < 3) {
                 setTimeout(() => takeNextPhoto(), 1500);
             } else {
+                console.log('📸 All photos captured for session:', sessionId);
                 setTimeout(() => showPhotoStrip(), 3000);
             }
         }
@@ -999,19 +1026,28 @@
             document.getElementById('capturePage').classList.remove('active');
             document.getElementById('stripPage').classList.add('active');
             
+            console.log('🖼️ Displaying photo strip for session:', sessionId, 'with', capturedPhotos.length, 'photos');
+            
             // Display photos in strip with applied filters
             for (let i = 0; i < 3; i++) {
                 const stripPhoto = document.getElementById(`stripPhoto${i + 1}`);
-                const img = document.createElement('img');
-                img.src = capturedPhotos[i].data;
                 
-                // Apply the same filter that was used during capture
-                if (capturedPhotos[i].filter !== 'none') {
-                    img.classList.add(capturedPhotos[i].filter + '-filter');
+                if (capturedPhotos[i]) {
+                    const img = document.createElement('img');
+                    img.src = capturedPhotos[i].data;
+                    
+                    // Apply the same filter that was used during capture
+                    if (capturedPhotos[i].filter !== 'none') {
+                        img.classList.add(capturedPhotos[i].filter + '-filter');
+                    }
+                    
+                    stripPhoto.innerHTML = '';
+                    stripPhoto.appendChild(img);
+                    console.log(`🖼️ Displayed photo ${i + 1} with filter:`, capturedPhotos[i].filter);
+                } else {
+                    // Clear any previous content if no photo exists
+                    stripPhoto.innerHTML = '';
                 }
-                
-                stripPhoto.innerHTML = '';
-                stripPhoto.appendChild(img);
             }
             
             // Stop camera stream
@@ -1020,7 +1056,7 @@
             }
         }
 
-        // FIXED EMAIL FUNCTION - Captures the actual photo strip display
+        // COMPLETELY REWRITTEN EMAIL FUNCTION - Now uses actual photo data
         async function sendPhotosViaEmail() {
             const emailInput = document.getElementById('emailInput');
             const email = emailInput.value.trim();
@@ -1037,9 +1073,16 @@
                 return;
             }
 
-            // Check if photos exist
+            // Check if photos exist for this session
             if (!capturedPhotos || capturedPhotos.length === 0) {
                 showStatusMessage('No photos to send. Take some photos first!', 'error');
+                return;
+            }
+
+            // Verify all photos are from current session
+            const sessionPhotos = capturedPhotos.filter(photo => photo.sessionId === sessionId);
+            if (sessionPhotos.length === 0) {
+                showStatusMessage('No photos found for current session. Please take new photos.', 'error');
                 return;
             }
 
@@ -1048,23 +1091,28 @@
                 return;
             }
 
-            console.log('📧 Capturing photo strip for:', email);
+            console.log('📧 Preparing email for session:', sessionId, 'with', sessionPhotos.length, 'photos');
             
             const button = event.target;
             const originalText = button.textContent;
             button.disabled = true;
-            button.textContent = 'Capturing...';
+            button.textContent = 'Preparing...';
             
-            showStatusMessage('Capturing your photo strip...', 'info');
+            showStatusMessage('Preparing your photos for email...', 'info');
             
             try {
-                // Capture the exact photo strip as displayed on screen
-                const photoStripImage = await capturePhotoStripScreenshot();
+                // Create photo strip from the actual captured photos
+                const photoStripImage = await createPhotoStripFromCapturedPhotos(sessionPhotos);
                 
                 button.textContent = 'Sending...';
                 showStatusMessage('Sending your photo strip via email...', 'info');
                 
-                console.log('📧 Sending email with photo strip screenshot...');
+                console.log('📧 Sending email with photo strip for session:', sessionId);
+                
+                // Prepare individual photos (smaller versions for backup)
+                const photo1 = sessionPhotos[0] ? resizeImageForEmail(sessionPhotos[0].data) : '';
+                const photo2 = sessionPhotos[1] ? resizeImageForEmail(sessionPhotos[1].data) : '';
+                const photo3 = sessionPhotos[2] ? resizeImageForEmail(sessionPhotos[2].data) : '';
                 
                 const result = await emailjs.send(
                     'service_9n5lgms',
@@ -1073,23 +1121,23 @@
                         to_email: email,
                         to_name: email.split('@')[0],
                         from_name: "Brittany's 22nd Birthday Party",
-                        subject: "🎉 Your Photo Strip from Brittany's 22nd Birthday!",
-                        message: "Here is your photo strip!",
+                        subject: `🎉 Your Photo Strip from Brittany's 22nd Birthday! (Session: ${sessionId})`,
+                        message: `Here are your photos from session ${sessionId}! Captured on ${new Date().toLocaleDateString()}.`,
                         photo_strip: photoStripImage,
-                        photo1: '',
-                        photo2: '',
-                        photo3: ''
+                        photo1: photo1,
+                        photo2: photo2,
+                        photo3: photo3
                     }
                 );
                 
-                console.log('✅ Photo strip sent successfully to:', email);
+                console.log('✅ Email sent successfully for session:', sessionId, 'to:', email);
                 showStatusMessage(`🎉 Photo strip sent to ${email}! Check your inbox!`, 'success');
                 
                 // Clear email input on success
                 emailInput.value = '';
                 
             } catch (error) {
-                console.error('❌ Email sending failed:', error);
+                console.error('❌ Email sending failed for session:', sessionId, error);
                 
                 let errorMsg = 'Failed to send photo strip: ';
                 if (error.message?.includes('50') || error.message?.includes('size')) {
@@ -1111,119 +1159,154 @@
             }
         }
 
-        // Capture the photo strip exactly as it appears on screen
-        async function capturePhotoStripScreenshot() {
+        // NEW FUNCTION: Create photo strip from actual captured photos
+        async function createPhotoStripFromCapturedPhotos(photos) {
             return new Promise((resolve, reject) => {
                 try {
-                    console.log('📸 Starting photo strip capture...');
+                    console.log('📸 Creating photo strip from', photos.length, 'captured photos');
                     
-                    // Get the photo strip element
-                    const photoStripElement = document.querySelector('.photo-strip');
-                    
-                    if (!photoStripElement) {
-                        reject(new Error('Photo strip element not found'));
-                        return;
-                    }
-
-                    // Create canvas with appropriate dimensions
+                    // Create canvas with photo strip dimensions
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // Set canvas size (scaled down for email but maintaining aspect ratio)
-                    canvas.width = 300;  // Smaller width for email
-                    canvas.height = 900; // Maintain photo strip proportions
+                    // Set canvas size (optimized for email)
+                    canvas.width = 400;  // Reasonable width for email
+                    canvas.height = 1200; // Photo strip proportions
                     
-                    // Fill background
+                    // Fill background (dark brown like the photo strip)
                     ctx.fillStyle = '#3d2817';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
                     // Add rounded corners
                     ctx.globalCompositeOperation = 'destination-in';
                     ctx.beginPath();
-                    ctx.roundRect(0, 0, canvas.width, canvas.height, 15);
+                    ctx.roundRect(0, 0, canvas.width, canvas.height, 20);
                     ctx.fill();
                     ctx.globalCompositeOperation = 'source-over';
                     
-                    // Draw title section
+                    // Title section styling
+                    const titleY = canvas.height - 200;
+                    
+                    // Draw title text
                     ctx.fillStyle = '#d4b895';
                     ctx.textAlign = 'left';
                     
-                    // Title text
-                    ctx.font = 'italic bold 24px serif';
-                    ctx.fillText("Brittanys", 25, 750);
+                    ctx.font = 'italic bold 32px serif';
+                    ctx.fillText("Brittanys", 30, titleY + 20);
                     
-                    ctx.font = 'italic bold 22px serif';
-                    ctx.fillText("22nd", 25, 780);
+                    ctx.font = 'italic bold 28px serif';
+                    ctx.fillText("22nd", 30, titleY + 55);
                     
-                    ctx.font = 'bold 20px serif';
-                    ctx.fillText("BDAY", 25, 810);
+                    ctx.font = 'bold 26px serif';
+                    ctx.fillText("BDAY", 30, titleY + 90);
+                    
+                    // Add session info (small text)
+                    ctx.font = '14px serif';
+                    ctx.fillStyle = 'rgba(212, 184, 149, 0.7)';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`Session: ${sessionId}`, canvas.width / 2, titleY + 130);
+                    ctx.fillText(new Date().toLocaleDateString(), canvas.width / 2, titleY + 150);
                     
                     // Add decorative stars
-                    ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
-                    ctx.font = '12px serif';
+                    ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
+                    ctx.font = '16px serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, 880);
+                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 30);
                     
-                    // Draw photos from captured data
-                    if (capturedPhotos && capturedPhotos.length > 0) {
-                        let photosProcessed = 0;
-                        const photoWidth = canvas.width - 40; // Margins
-                        const photoHeight = 200; // Scaled down height
-                        const startY = 40;
-                        const photoSpacing = 15;
+                    // Draw the actual captured photos
+                    let photosProcessed = 0;
+                    const photoWidth = canvas.width - 60; // Margins
+                    const photoHeight = 250; // Height for each photo
+                    const startY = 50;
+                    const photoSpacing = 20;
+                    
+                    // Process each photo
+                    photos.forEach((photoData, index) => {
+                        if (index >= 3) return; // Only process first 3 photos
                         
-                        capturedPhotos.forEach((photo, index) => {
-                            const img = new Image();
-                            img.onload = () => {
-                                const y = startY + (index * (photoHeight + photoSpacing));
-                                
-                                // Draw photo border
-                                ctx.fillStyle = '#d4b895';
-                                ctx.fillRect(17, y - 3, photoWidth + 6, photoHeight + 6);
-                                
-                                // Draw the photo
-                                ctx.drawImage(img, 20, y, photoWidth, photoHeight);
-                                
-                                photosProcessed++;
-                                console.log('📸 Processed photo', index + 1, 'of', capturedPhotos.length);
-                                
-                                if (photosProcessed === capturedPhotos.length) {
-                                    console.log('📸 All photos processed, finalizing image');
-                                    // Convert to optimized JPEG for email
-                                    const finalImage = canvas.toDataURL('image/jpeg', 0.3); // 30% quality for smaller size
-                                    console.log('📸 Final image size:', finalImage.length, 'characters');
-                                    resolve(finalImage);
-                                }
-                            };
+                        const img = new Image();
+                        
+                        img.onload = () => {
+                            const y = startY + (index * (photoHeight + photoSpacing));
                             
-                            img.onerror = (error) => {
-                                console.error('📸 Failed to load photo', index + 1, error);
-                                photosProcessed++;
-                                
-                                if (photosProcessed === capturedPhotos.length) {
-                                    const finalImage = canvas.toDataURL('image/jpeg', 0.3);
-                                    resolve(finalImage);
-                                }
-                            };
+                            // Draw photo border
+                            ctx.fillStyle = '#d4b895';
+                            ctx.fillRect(27, y - 3, photoWidth + 6, photoHeight + 6);
                             
-                            img.src = photo.data;
-                        });
-                    } else {
-                        // No photos, just return the template
-                        const finalImage = canvas.toDataURL('image/jpeg', 0.3);
+                            // Draw the actual captured photo
+                            ctx.drawImage(img, 30, y, photoWidth, photoHeight);
+                            
+                            photosProcessed++;
+                            console.log(`📸 Added photo ${index + 1} to strip (filter: ${photoData.filter})`);
+                            
+                            // When all photos are processed, return the final image
+                            if (photosProcessed === Math.min(photos.length, 3)) {
+                                console.log('📸 Photo strip creation complete');
+                                // Convert to optimized JPEG for email (higher quality than before)
+                                const finalImage = canvas.toDataURL('image/jpeg', 0.6); // 60% quality
+                                console.log('📸 Final photo strip size:', finalImage.length, 'characters');
+                                resolve(finalImage);
+                            }
+                        };
+                        
+                        img.onerror = (error) => {
+                            console.error(`📸 Failed to load photo ${index + 1}:`, error);
+                            photosProcessed++;
+                            
+                            // Continue even if some photos fail
+                            if (photosProcessed === Math.min(photos.length, 3)) {
+                                const finalImage = canvas.toDataURL('image/jpeg', 0.6);
+                                resolve(finalImage);
+                            }
+                        };
+                        
+                        // Load the actual captured photo data
+                        img.src = photoData.data;
+                    });
+                    
+                    // If no photos to process, return template
+                    if (photos.length === 0) {
+                        const finalImage = canvas.toDataURL('image/jpeg', 0.6);
                         resolve(finalImage);
                     }
                     
                 } catch (error) {
-                    console.error('📸 Photo strip capture failed:', error);
+                    console.error('📸 Photo strip creation failed:', error);
                     reject(error);
                 }
             });
         }
 
+        // Helper function to resize individual photos for email
+        function resizeImageForEmail(imageData) {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                canvas.width = 300;
+                canvas.height = 200;
+                
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                };
+                
+                img.src = imageData;
+                
+                return canvas.toDataURL('image/jpeg', 0.5); // 50% quality for individual photos
+            } catch (error) {
+                console.error('Failed to resize image:', error);
+                return '';
+            }
+        }
+
         function restartSession() {
             document.getElementById('stripPage').classList.remove('active');
             document.getElementById('startPage').classList.add('active');
+            
+            // Generate new session ID for fresh start
+            sessionId = Date.now();
+            console.log('🔄 Restarting with new session:', sessionId);
             
             // Reset everything
             capturedPhotos = [];
@@ -1231,6 +1314,11 @@
             currentFilter = 'none';
             document.getElementById('emailInput').value = '';
             document.getElementById('statusMessage').style.display = 'none';
+            
+            // Clear photo strip display
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`stripPhoto${i}`).innerHTML = '';
+            }
             
             // Reset filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -1246,6 +1334,10 @@
 
         // Make functions available globally for onclick handlers
         window.sendPhotosViaEmail = sendPhotosViaEmail;
+        window.startPhotoSession = startPhotoSession;
+        window.setFilter = setFilter;
+        window.startCountdown = startCountdown;
+        window.restartSession = restartSession;
     </script>
 </body>
 </html>
