@@ -750,7 +750,7 @@
                 <div class="twenty-second">22nd</div>
                 <div class="bday">BDAY</div>
             </div>
-            <button class="elegant-btn" onclick="startPhotoSession()">Start</button>
+            <button class="elegant-btn" onclick="startPhotoSession()">Start Photo Booth</button>
         </div>
         <div class="flash-overlay" id="flashOverlay"></div>
     </div>
@@ -861,6 +861,8 @@
         }
 
         async function startPhotoSession() {
+            console.log('🎬 Start button clicked!'); // Debug log
+            
             // Generate new session ID
             sessionId = Date.now();
             console.log('🎬 Starting new photo session:', sessionId);
@@ -869,6 +871,7 @@
             document.getElementById('filterPage').classList.add('active');
             
             try {
+                console.log('📷 Requesting camera access...');
                 stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         width: 1920, 
@@ -878,9 +881,13 @@
                 });
                 document.getElementById('video').srcObject = stream;
                 document.getElementById('captureVideo').srcObject = stream;
+                console.log('✅ Camera access granted!');
             } catch (error) {
-                console.error('Error accessing camera:', error);
-                alert('Unable to access camera. Please ensure camera permissions are granted.');
+                console.error('❌ Error accessing camera:', error);
+                alert('Unable to access camera. Please ensure camera permissions are granted and refresh the page.');
+                // Go back to start page if camera fails
+                document.getElementById('filterPage').classList.remove('active');
+                document.getElementById('startPage').classList.add('active');
             }
         }
 
@@ -1564,13 +1571,34 @@
             }
         });
 
-        // Make functions available globally for onclick handlers
-        window.sendPhotosViaEmail = sendPhotosViaCloudLink; // Use cloud method as primary
-        window.sendPhotosViaEmailDirect = sendPhotosViaEmailDirect; // Keep direct as backup
+        // Test function to ensure JavaScript is working
+        function testButton() {
+            console.log('🧪 Test function called - JavaScript is working!');
+            alert('JavaScript is working! If you see this, the start button should work.');
+        }
+
+        // DOM loaded check
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM loaded, JavaScript ready');
+            
+            // Test that start button exists
+            const startBtn = document.querySelector('.elegant-btn');
+            if (startBtn) {
+                console.log('✅ Start button found:', startBtn);
+            } else {
+                console.error('❌ Start button not found!');
+            }
+        });
+
+        // Make ALL functions available globally for onclick handlers
         window.startPhotoSession = startPhotoSession;
         window.setFilter = setFilter;
         window.startCountdown = startCountdown;
+        window.sendPhotosViaEmail = sendPhotosViaCloudLink; // Use cloud method as primary
+        window.sendPhotosViaEmailDirect = sendPhotosViaEmailDirect; // Keep direct as backup
         window.restartSession = restartSession;
+        window.downloadPhotoStripDirectly = downloadPhotoStripDirectly;
+        window.testButton = testButton; // Add test function
     </script>
 </body>
 </html>
