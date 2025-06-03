@@ -776,29 +776,11 @@
                 </div>
             </div>
             <div class="phone-input-container">
-                <div style="text-align: center; margin-bottom: 0.2in; color: #3d2817; font-family: 'Dancing Script', cursive; font-size: 0.18in; font-weight: 600;">
-                    Scan QR Code with Your Phone!
+                <div style="text-align: center; margin-bottom: 0.15in; color: #3d2817; font-family: 'Dancing Script', cursive; font-size: 0.16in; font-weight: 600;">
+                    Get your photo strip on your phone!
                 </div>
-                
-                <!-- QR Code Display Area -->
-                <div id="qrCodeDisplay" style="text-align: center; margin: 0.2in 0;">
-                    <div style="background: white; padding: 0.2in; border-radius: 20px; display: inline-block; box-shadow: 0 8px 20px rgba(61, 40, 23, 0.3);">
-                        <img id="qrCodeImage" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=Ready%20for%20photos!" 
-                             style="width: 3in; height: 3in; display: block;">
-                    </div>
-                    <p style="font-family: 'Playfair Display', serif; font-size: 0.12in; color: #666; margin: 0.15in 0;">
-                        Take photos, then scan to open image!
-                    </p>
-                    <button onclick="createBackupDownload()" 
-                            style="background: linear-gradient(135deg, #c9a876, #8b7355); border: none; 
-                                   padding: 0.08in 0.2in; border-radius: 15px; font-size: 0.1in; 
-                                   color: white; font-family: 'Playfair Display', serif; 
-                                   font-weight: 600; cursor: pointer; margin-top: 0.1in;
-                                   box-shadow: 0 3px 8px rgba(0,0,0,0.2);">
-                        💾 Download Backup
-                    </button>
-                </div>
-                
+                <input type="tel" class="phone-input" id="phoneInput" placeholder="Enter your phone number">
+                <button class="strip-page-btn" onclick="sendPhotoStrip()">Send to My Phone</button>
                 <button class="strip-page-btn" onclick="restartSession()">Take New Photos</button>
             </div>
         </div>
