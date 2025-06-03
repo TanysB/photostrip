@@ -816,7 +816,7 @@
                 </div>
                 <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
                 <div id="statusMessage"></div>
-                <button class="strip-page-btn" onclick="simpleEmailTest()">Email My Photos</button>
+                <button class="strip-page-btn" onclick="sendPhotosViaEmail()">Email My Photos</button>
                 <button class="strip-page-btn" onclick="restartSession()">Take New Photos</button>
             </div>
         </div>
@@ -1020,202 +1020,151 @@
             }
         }
 
-        // Enhanced email function with EmailJS integration
-        async function sendPhotoStrip() {
+        // FIXED EMAIL FUNCTION - Optimized for EmailJS size limits
+        async function sendPhotosViaEmail() {
             const emailInput = document.getElementById('emailInput');
             const email = emailInput.value.trim();
             
-            // Validate email
             if (!email) {
                 showStatusMessage('Please enter an email address', 'error');
                 return;
             }
-            
-            // Basic email validation
+
+            // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 showStatusMessage('Please enter a valid email address', 'error');
                 return;
             }
-            
+
             // Check if photos exist
             if (!capturedPhotos || capturedPhotos.length === 0) {
                 showStatusMessage('No photos to send. Take some photos first!', 'error');
                 return;
             }
+
+            if (typeof emailjs === 'undefined') {
+                showStatusMessage('❌ Email service not loaded! Please refresh the page.', 'error');
+                return;
+            }
+
+            console.log('📧 Preparing email for:', email);
             
-            // Disable button while sending
             const button = event.target;
             const originalText = button.textContent;
             button.disabled = true;
             button.textContent = 'Sending...';
             
-            showStatusMessage('Capturing photo strip and sending email...', 'info');
+            showStatusMessage('Preparing your photos for email...', 'info');
             
             try {
-                // Capture the exact photo strip as displayed
-                const photoStripDataURL = await capturePhotoStripAsDisplayed();
-                
-                // Prepare email template parameters
-                const templateParams = {
-                    to_email: email,
-                    to_name: email.split('@')[0], // Use part before @ as name
-                    from_name: "Brittany's 22nd Birthday Party",
-                    subject: "🎉 Your Photo Booth Pictures from Brittany's 22nd Birthday!",
-                    message: `Hi there!\n\nThanks for celebrating Brittany's 22nd birthday with us! 🎂\n\nAttached is your photo booth strip from the party, exactly as it appeared on screen! We hope you had as much fun taking these pictures as we did setting up the booth!\n\nKeep celebrating! 🥳\n\n- Brittany's Birthday Team`,
-                    photo_strip: photoStripDataURL,
-                    photo1: capturedPhotos[0]?.data || '',
-                    photo2: capturedPhotos[1]?.data || '',
-                    photo3: capturedPhotos[2]?.data || ''
-                };
-
-                // Send email using EmailJS
-                const result = await emailjs.send(
-                    'service_9n5lgms',      // Your service ID
-                    'template_js58xgg',     // Your template ID
-                    templateParams
+                // Create VERY small thumbnails for email (under 10KB each)
+                const thumbnails = await Promise.all(
+                    capturedPhotos.map(photo => createTinyThumbnail(photo.data))
                 );
-
-                console.log('Email sent successfully:', result);
-                showStatusMessage(`🎉 Photo strip successfully sent to ${email}! Check your inbox!`, 'success');
+                
+                // Create a simple text-based photo strip description
+                const photoStripText = createPhotoStripDescription();
+                
+                console.log('📧 Sending email with tiny thumbnails...');
+                
+                const result = await emailjs.send(
+                    'service_9n5lgms',
+                    'template_js58xgg',
+                    {
+                        to_email: email,
+                        to_name: email.split('@')[0],
+                        from_name: "Brittany's 22nd Birthday Party",
+                        subject: "🎉 Your Photo Booth Pictures from Brittany's 22nd Birthday!",
+                        message: `Hi ${email.split('@')[0]}!\n\nThanks for celebrating Brittany's 22nd birthday with us! 🎂\n\n${photoStripText}\n\nWe hope you had as much fun taking these pictures as we did setting up the booth!\n\nKeep celebrating! 🥳\n\n- Brittany's Birthday Team`,
+                        // Only send the first photo as a very small thumbnail
+                        photo_strip: thumbnails[0] || '',
+                        // Send empty strings for other photos to avoid size limits
+                        photo1: '',
+                        photo2: '',
+                        photo3: ''
+                    }
+                );
+                
+                console.log('✅ Email sent successfully to:', email);
+                showStatusMessage(`🎉 Email sent to ${email}! Check your inbox for a preview. For full-size photos, please use the download option.`, 'success');
                 
                 // Clear email input on success
                 emailInput.value = '';
                 
+                // Show download option
+                setTimeout(() => {
+                    showStatusMessage('💡 Tip: For full-size photos, right-click on each photo above and select "Save image as..."', 'info');
+                }, 3000);
+                
             } catch (error) {
-                console.error('Email sending failed:', error);
-                showStatusMessage('Failed to send email. Please try again or check your internet connection.', 'error');
+                console.error('❌ Email sending failed:', error);
+                
+                let errorMsg = 'Failed to send email: ';
+                if (error.message?.includes('50')) {
+                    errorMsg += 'Photos are too large. Try the download option instead.';
+                } else if (error.status === 401) {
+                    errorMsg += 'Authentication failed. Please try again.';
+                } else if (error.status === 402) {
+                    errorMsg += 'Monthly email limit reached.';
+                } else if (error.text) {
+                    errorMsg += error.text;
+                } else {
+                    errorMsg += 'Please check your internet connection and try again.';
+                }
+                
+                showStatusMessage(errorMsg, 'error');
             } finally {
-                // Re-enable button
                 button.disabled = false;
                 button.textContent = originalText;
             }
         }
 
-        // Simplified and more reliable photo strip capture
-        async function capturePhotoStripAsDisplayed() {
-            return new Promise((resolve, reject) => {
-                try {
-                    console.log('🔧 DEBUG: Starting photo strip capture...');
+        // Create extremely small thumbnail (under 5KB) for email
+        function createTinyThumbnail(dataURL) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = () => {
+                    // Very small dimensions for email
+                    canvas.width = 100;
+                    canvas.height = 75;
                     
-                    // Create canvas for the photo strip
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
+                    // Draw and compress heavily
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const tinyDataURL = canvas.toDataURL('image/jpeg', 0.1); // Very low quality for small size
                     
-                    // Set canvas dimensions (similar to the display strip but optimized for email)
-                    canvas.width = 400;  // 2 inches at 200 DPI
-                    canvas.height = 1200; // 6 inches at 200 DPI
-                    
-                    // Fill background
-                    ctx.fillStyle = '#3d2817';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    // Add rounded corners effect
-                    ctx.globalCompositeOperation = 'destination-out';
-                    const cornerRadius = 15;
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(cornerRadius, 0);
-                    ctx.quadraticCurveTo(0, 0, 0, cornerRadius);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Reset composite operation
-                    ctx.globalCompositeOperation = 'source-over';
-                    
-                    // Draw title section
-                    ctx.fillStyle = '#d4b895';
-                    ctx.textAlign = 'left';
-                    
-                    // "Brittanys" in Dancing Script style
-                    ctx.font = 'italic bold 32px serif';
-                    ctx.fillText("Brittanys", 30, 980);
-                    
-                    // "22nd" 
-                    ctx.font = 'italic bold 30px serif';
-                    ctx.fillText("22nd", 30, 1020);
-                    
-                    // "BDAY"
-                    ctx.font = 'bold 28px serif';
-                    ctx.fillText("BDAY", 30, 1060);
-                    
-                    // Add decorative stars at bottom
-                    ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
-                    ctx.font = '14px serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, 1180);
-                    
-                    // Draw photos
-                    if (!capturedPhotos || capturedPhotos.length === 0) {
-                        console.log('🔧 DEBUG: No photos to draw, returning strip with text only');
-                        resolve(canvas.toDataURL('image/jpeg', 0.9));
-                        return;
-                    }
-                    
-                    let photosProcessed = 0;
-                    const photoWidth = canvas.width - 60; // 30px margin on each side
-                    const photoHeight = 280; // Fixed height for each photo
-                    const startY = 50;
-                    const photoSpacing = 20;
-                    
-                    console.log('🔧 DEBUG: Processing', capturedPhotos.length, 'photos');
-                    
-                    capturedPhotos.forEach((photo, index) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const y = startY + (index * (photoHeight + photoSpacing));
-                            
-                            // Draw photo border
-                            ctx.fillStyle = '#d4b895';
-                            ctx.fillRect(27, y - 3, photoWidth + 6, photoHeight + 6);
-                            
-                            // Draw the photo
-                            ctx.drawImage(img, 30, y, photoWidth, photoHeight);
-                            
-                            photosProcessed++;
-                            console.log('🔧 DEBUG: Processed photo', index + 1, 'of', capturedPhotos.length);
-                            
-                            if (photosProcessed === capturedPhotos.length) {
-                                console.log('🔧 DEBUG: All photos processed, generating final image');
-                                resolve(canvas.toDataURL('image/jpeg', 0.9));
-                            }
-                        };
-                        
-                        img.onerror = (error) => {
-                            console.error('🔧 DEBUG: Failed to load photo', index + 1, error);
-                            photosProcessed++;
-                            
-                            if (photosProcessed === capturedPhotos.length) {
-                                resolve(canvas.toDataURL('image/jpeg', 0.9));
-                            }
-                        };
-                        
-                        // Set the image source
-                        img.src = photo.data;
-                    });
-                    
-                } catch (error) {
-                    console.error('🔧 DEBUG: Photo strip capture failed:', error);
-                    reject(error);
-                }
+                    console.log('📧 Created tiny thumbnail:', tinyDataURL.length, 'characters');
+                    resolve(tinyDataURL);
+                };
+                
+                img.src = dataURL;
             });
         }
 
-        // Test function for debugging
-        function testFunction() {
-            console.log('Test function called!');
-            console.log('Current photos:', capturedPhotos.length);
-            console.log('Current filter:', currentFilter);
+        // Create text description instead of large images
+        function createPhotoStripDescription() {
+            const filterNames = {
+                'none': 'No Filter',
+                'blackwhite': 'Black & White',
+                'vintage': 'Vintage',
+                'desert': 'Desert',
+                'sunset': 'Sunset',
+                'retro': 'Retro'
+            };
             
-            showStatusMessage('Test function executed! Check browser console for details.', 'info');
+            let description = "Here's what you captured at the photo booth:\n\n";
             
-            // Test email validation
-            const emailInput = document.getElementById('emailInput');
-            if (emailInput.value) {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                const isValid = emailRegex.test(emailInput.value.trim());
-                showStatusMessage(`Email validation: ${isValid ? 'Valid' : 'Invalid'}`, isValid ? 'success' : 'error');
-            }
+            capturedPhotos.forEach((photo, index) => {
+                const filterName = filterNames[photo.filter] || 'Unknown Filter';
+                description += `📸 Photo ${index + 1}: ${filterName} effect\n`;
+            });
+            
+            description += "\n✨ A small preview is attached to this email. For full-size photos, please visit the photo booth again or contact us!";
+            
+            return description;
         }
 
         function restartSession() {
@@ -1241,194 +1190,8 @@
             }
         });
 
-        // Main email function - sends compressed photos
-        async function simpleEmailTest() {
-            const emailInput = document.getElementById('emailInput');
-            const email = emailInput.value.trim();
-            
-            if (!email) {
-                showStatusMessage('Enter an email address first!', 'error');
-                return;
-            }
-
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                showStatusMessage('Please enter a valid email address', 'error');
-                return;
-            }
-
-            // Check if photos exist
-            if (!capturedPhotos || capturedPhotos.length === 0) {
-                showStatusMessage('No photos to send. Take some photos first!', 'error');
-                return;
-            }
-
-            if (typeof emailjs === 'undefined') {
-                showStatusMessage('❌ Email service not loaded! Please refresh the page.', 'error');
-                return;
-            }
-
-            console.log('📧 Compressing and sending photos to:', email);
-            
-            const button = event.target;
-            const originalText = button.textContent;
-            button.disabled = true;
-            button.textContent = 'Compressing...';
-            
-            showStatusMessage('Compressing photos for email...', 'info');
-            
-            try {
-                // Compress all photos to reduce file size
-                const compressedPhotos = await Promise.all(
-                    capturedPhotos.map(photo => compressImage(photo.data, 0.3, 600, 600))
-                );
-                
-                console.log('📧 Photos compressed, sending email...');
-                button.textContent = 'Sending...';
-                showStatusMessage('Sending your photos via email...', 'info');
-                
-                // Create a simple photo strip from the first photo
-                const photoStrip = await createSimplePhotoStrip(compressedPhotos);
-                
-                const result = await emailjs.send(
-                    'service_9n5lgms',
-                    'template_js58xgg',
-                    {
-                        to_email: email,
-                        to_name: email.split('@')[0],
-                        from_name: "Brittany's 22nd Birthday Party",
-                        subject: "🎉 Your Photo Booth Pictures from Brittany's 22nd Birthday!",
-                        message: `Hi there!\n\nThanks for celebrating Brittany's 22nd birthday with us! 🎂\n\nHere are your awesome photo booth pictures from the party. We hope you had as much fun taking them as we did setting up the booth!\n\nKeep celebrating! 🥳\n\n- Brittany's Birthday Team`,
-                        photo_strip: photoStrip,
-                        photo1: compressedPhotos[0] || '',
-                        photo2: compressedPhotos[1] || '',
-                        photo3: compressedPhotos[2] || ''
-                    }
-                );
-                
-                console.log('✅ Photos sent successfully to:', email);
-                showStatusMessage(`🎉 Photos successfully sent to ${email}! Check your inbox!`, 'success');
-                
-                // Clear email input on success
-                emailInput.value = '';
-                
-            } catch (error) {
-                console.error('❌ Email sending failed:', error);
-                
-                let errorMsg = 'Failed to send photos: ';
-                if (error.message?.includes('50')) {
-                    errorMsg += 'Photos are still too large. Try taking new photos.';
-                } else if (error.status === 401) {
-                    errorMsg += 'Authentication failed. Please try again.';
-                } else if (error.status === 402) {
-                    errorMsg += 'Monthly email limit reached.';
-                } else if (error.text) {
-                    errorMsg += error.text;
-                } else {
-                    errorMsg += 'Please check your internet connection and try again.';
-                }
-                
-                showStatusMessage(errorMsg, 'error');
-            } finally {
-                button.disabled = false;
-                button.textContent = originalText;
-            }
-        }
-
-        // Compress image to reduce file size for email
-        function compressImage(dataURL, quality = 0.3, maxWidth = 600, maxHeight = 600) {
-            return new Promise((resolve) => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const img = new Image();
-                
-                img.onload = () => {
-                    // Calculate new dimensions while maintaining aspect ratio
-                    let { width, height } = img;
-                    
-                    if (width > height) {
-                        if (width > maxWidth) {
-                            height = (height * maxWidth) / width;
-                            width = maxWidth;
-                        }
-                    } else {
-                        if (height > maxHeight) {
-                            width = (width * maxHeight) / height;
-                            height = maxHeight;
-                        }
-                    }
-                    
-                    canvas.width = width;
-                    canvas.height = height;
-                    
-                    // Draw and compress
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const compressedDataURL = canvas.toDataURL('image/jpeg', quality);
-                    
-                    console.log('📧 Compressed image from', dataURL.length, 'to', compressedDataURL.length, 'characters');
-                    resolve(compressedDataURL);
-                };
-                
-                img.src = dataURL;
-            });
-        }
-
-        // Create a simple, small photo strip
-        function createSimplePhotoStrip(compressedPhotos) {
-            return new Promise((resolve) => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Very small dimensions for email
-                canvas.width = 200;
-                canvas.height = 600;
-                
-                // Background
-                ctx.fillStyle = '#3d2817';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Title
-                ctx.fillStyle = '#d4b895';
-                ctx.font = 'bold 16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText("Brittany's 22nd", canvas.width/2, 25);
-                ctx.font = '12px Arial';
-                ctx.fillText("Birthday Party", canvas.width/2, 40);
-                
-                if (compressedPhotos.length > 0) {
-                    let photosDrawn = 0;
-                    const photoSize = 160;
-                    const startY = 60;
-                    
-                    compressedPhotos.forEach((photoData, index) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const y = startY + (index * 170);
-                            ctx.drawImage(img, 20, y, photoSize, 150);
-                            
-                            photosDrawn++;
-                            if (photosDrawn === compressedPhotos.length) {
-                                // Add footer
-                                ctx.fillStyle = '#d4b895';
-                                ctx.font = '10px Arial';
-                                ctx.textAlign = 'center';
-                                ctx.fillText('Thanks for celebrating!', canvas.width/2, canvas.height - 20);
-                                
-                                resolve(canvas.toDataURL('image/jpeg', 0.5));
-                            }
-                        };
-                        img.src = photoData;
-                    });
-                } else {
-                    resolve(canvas.toDataURL('image/jpeg', 0.5));
-                }
-            });
-        }
-
         // Make functions available globally for onclick handlers
-        window.simpleEmailTest = simpleEmailTest;
+        window.sendPhotosViaEmail = sendPhotosViaEmail;
     </script>
 </body>
 </html>
-
