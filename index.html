@@ -818,6 +818,7 @@
                 <div id="statusMessage"></div>
                 <button class="strip-page-btn" onclick="sendPhotoStrip()">Email My Photos</button>
                 <button class="strip-page-btn" onclick="testFunction()">🔧 Test Function</button>
+                <button class="strip-page-btn" onclick="simpleEmailTest()">📧 Simple Email Test</button>
                 <button class="strip-page-btn" onclick="restartSession()">Take New Photos</button>
             </div>
         </div>
@@ -1264,9 +1265,53 @@
             }
         });
 
+        // Simple email test without photo strip
+        async function simpleEmailTest() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showStatusMessage('Enter an email address first!', 'error');
+                return;
+            }
+
+            if (typeof emailjs === 'undefined') {
+                showStatusMessage('❌ EmailJS not loaded!', 'error');
+                return;
+            }
+
+            console.log('🔧 SIMPLE TEST: Attempting basic email send...');
+            
+            try {
+                const result = await emailjs.send(
+                    'service_9n5lgms',
+                    'template_js58xgg',
+                    {
+                        to_email: email,
+                        to_name: 'Test User',
+                        from_name: 'Photo Booth Test',
+                        subject: 'Test Email',
+                        message: 'This is a test email to verify EmailJS is working.',
+                        photo_strip: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=',
+                        photo1: '',
+                        photo2: '',
+                        photo3: ''
+                    }
+                );
+                
+                console.log('✅ Simple email test successful:', result);
+                showStatusMessage('✅ Simple email test successful! Check your inbox.', 'success');
+                
+            } catch (error) {
+                console.error('❌ Simple email test failed:', error);
+                showStatusMessage(`❌ Simple email failed: ${error.text || error.message}`, 'error');
+            }
+        }
+
         // Make functions available globally for onclick handlers
         window.sendPhotoStrip = sendPhotoStrip;
         window.testFunction = testFunction;
+        window.simpleEmailTest = simpleEmailTest;
     </script>
 </body>
 </html>
