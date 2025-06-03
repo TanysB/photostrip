@@ -1241,7 +1241,7 @@
             }
         });
 
-        // Main email function - sends compressed photos
+        // Main email function - sends only high-quality photo strip
         async function simpleEmailTest() {
             const emailInput = document.getElementById('emailInput');
             const email = emailInput.value.trim();
@@ -1269,27 +1269,22 @@
                 return;
             }
 
-            console.log('📧 Compressing and sending photos to:', email);
+            console.log('📧 Creating high-quality photo strip for:', email);
             
             const button = event.target;
             const originalText = button.textContent;
             button.disabled = true;
-            button.textContent = 'Compressing...';
+            button.textContent = 'Creating Strip...';
             
-            showStatusMessage('Compressing photos for email...', 'info');
+            showStatusMessage('Creating your photo strip...', 'info');
             
             try {
-                // Compress all photos to reduce file size
-                const compressedPhotos = await Promise.all(
-                    capturedPhotos.map(photo => compressImage(photo.data, 0.3, 600, 600))
-                );
+                // Create exact replica of the displayed photo strip
+                const photoStrip = await createExactPhotoStripReplica();
                 
-                console.log('📧 Photos compressed, sending email...');
+                console.log('📧 Photo strip created, sending email...');
                 button.textContent = 'Sending...';
-                showStatusMessage('Sending your photos via email...', 'info');
-                
-                // Create a simple photo strip from the first photo
-                const photoStrip = await createSimplePhotoStrip(compressedPhotos);
+                showStatusMessage('Sending your photo strip via email...', 'info');
                 
                 const result = await emailjs.send(
                     'service_9n5lgms',
@@ -1298,17 +1293,17 @@
                         to_email: email,
                         to_name: email.split('@')[0],
                         from_name: "Brittany's 22nd Birthday Party",
-                        subject: "🎉 Your Photo Booth Pictures from Brittany's 22nd Birthday!",
-                        message: `Hi there!\n\nThanks for celebrating Brittany's 22nd birthday with us! 🎂\n\nHere are your awesome photo booth pictures from the party. We hope you had as much fun taking them as we did setting up the booth!\n\nKeep celebrating! 🥳\n\n- Brittany's Birthday Team`,
+                        subject: "🎉 Your Photo Strip from Brittany's 22nd Birthday!",
+                        message: `Here is your photo strip:`,
                         photo_strip: photoStrip,
-                        photo1: compressedPhotos[0] || '',
-                        photo2: compressedPhotos[1] || '',
-                        photo3: compressedPhotos[2] || ''
+                        photo1: '', // Empty - not using individual photos
+                        photo2: '', // Empty - not using individual photos  
+                        photo3: ''  // Empty - not using individual photos
                     }
                 );
                 
-                console.log('✅ Photos sent successfully to:', email);
-                showStatusMessage(`🎉 Photos successfully sent to ${email}! Check your inbox!`, 'success');
+                console.log('✅ Photo strip sent successfully to:', email);
+                showStatusMessage(`🎉 Photo strip successfully sent to ${email}! Check your inbox!`, 'success');
                 
                 // Clear email input on success
                 emailInput.value = '';
@@ -1316,9 +1311,9 @@
             } catch (error) {
                 console.error('❌ Email sending failed:', error);
                 
-                let errorMsg = 'Failed to send photos: ';
+                let errorMsg = 'Failed to send photo strip: ';
                 if (error.message?.includes('50')) {
-                    errorMsg += 'Photos are still too large. Try taking new photos.';
+                    errorMsg += 'Photo strip still too large. Please try again.';
                 } else if (error.status === 401) {
                     errorMsg += 'Authentication failed. Please try again.';
                 } else if (error.status === 402) {
@@ -1336,94 +1331,280 @@
             }
         }
 
-        // Compress image to reduce file size for email
-        function compressImage(dataURL, quality = 0.3, maxWidth = 600, maxHeight = 600) {
-            return new Promise((resolve) => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const img = new Image();
-                
-                img.onload = () => {
-                    // Calculate new dimensions while maintaining aspect ratio
-                    let { width, height } = img;
+        // Create very small, optimized photo strip for email limits
+        async function createExactPhotoStripReplica() {
+            return new Promise((resolve, reject) => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
                     
-                    if (width > height) {
-                        if (width > maxWidth) {
-                            height = (height * maxWidth) / width;
-                            width = maxWidth;
-                        }
+                    // Very small dimensions to stay under 50KB total limit
+                    canvas.width = 200;  // Much smaller
+                    canvas.height = 600; // Much smaller
+                    
+                    // Fill with background color
+                    ctx.fillStyle = '#3d2817';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw photos if available
+                    if (capturedPhotos && capturedPhotos.length > 0) {
+                        let photosProcessed = 0;
+                        const photoMargin = 15;
+                        const photoWidth = canvas.width - (photoMargin * 2);
+                        const photoHeight = 140; // Fixed height for consistent sizing
+                        const startY = 40;
+                        const photoSpacing = 10;
+                        
+                        capturedPhotos.forEach((photo, index) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                const y = startY + (index * (photoHeight + photoSpacing));
+                                
+                                // Draw photo border
+                                ctx.fillStyle = '#d4b895';
+                                ctx.fillRect(photoMargin - 2, y - 2, photoWidth + 4, photoHeight + 4);
+                                
+                                // Apply filter if photo has one
+                                if (photo.filter && photo.filter !== 'none') {
+                                    ctx.filter = getCanvasFilter(photo.filter);
+                                }
+                                
+                                // Draw the photo
+                                ctx.drawImage(img, photoMargin, y, photoWidth, photoHeight);
+                                
+                                // Reset filter
+                                ctx.filter = 'none';
+                                
+                                photosProcessed++;
+                                if (photosProcessed === capturedPhotos.length) {
+                                    // Add title
+                                    addTinyPhotoStripTitle(ctx, canvas.width, canvas.height);
+                                    
+                                    // Very aggressive compression for email limits
+                                    resolve(canvas.toDataURL('image/jpeg', 0.3)); // Very low quality
+                                }
+                            };
+                            
+                            img.onerror = () => {
+                                console.error('Failed to load photo', index);
+                                photosProcessed++;
+                                if (photosProcessed === capturedPhotos.length) {
+                                    addTinyPhotoStripTitle(ctx, canvas.width, canvas.height);
+                                    resolve(canvas.toDataURL('image/jpeg', 0.3));
+                                }
+                            };
+                            
+                            img.src = photo.data;
+                        });
                     } else {
-                        if (height > maxHeight) {
-                            width = (width * maxHeight) / height;
-                            height = maxHeight;
-                        }
+                        addTinyPhotoStripTitle(ctx, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.3));
                     }
                     
-                    canvas.width = width;
-                    canvas.height = height;
-                    
-                    // Draw and compress
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const compressedDataURL = canvas.toDataURL('image/jpeg', quality);
-                    
-                    console.log('📧 Compressed image from', dataURL.length, 'to', compressedDataURL.length, 'characters');
-                    resolve(compressedDataURL);
-                };
-                
-                img.src = dataURL;
+                } catch (error) {
+                    console.error('Photo strip creation failed:', error);
+                    reject(error);
+                }
             });
         }
 
-        // Create a simple, small photo strip
-        function createSimplePhotoStrip(compressedPhotos) {
-            return new Promise((resolve) => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Very small dimensions for email
-                canvas.width = 200;
-                canvas.height = 600;
-                
-                // Background
-                ctx.fillStyle = '#3d2817';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Title
-                ctx.fillStyle = '#d4b895';
-                ctx.font = 'bold 16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText("Brittany's 22nd", canvas.width/2, 25);
-                ctx.font = '12px Arial';
-                ctx.fillText("Birthday Party", canvas.width/2, 40);
-                
-                if (compressedPhotos.length > 0) {
-                    let photosDrawn = 0;
-                    const photoSize = 160;
-                    const startY = 60;
+        // Add very small title
+        function addTinyPhotoStripTitle(ctx, width, height) {
+            const titleX = width * 0.1;
+            const titleY = height * 0.85;
+            
+            ctx.fillStyle = '#d4b895';
+            ctx.textAlign = 'left';
+            
+            // Small fonts to save space
+            ctx.font = 'bold 18px serif';
+            ctx.fillText("Brittanys", titleX, titleY);
+            
+            ctx.font = 'bold 16px serif';
+            ctx.fillText("22nd BDAY", titleX, titleY + 20);
+            
+            // Stars
+            ctx.font = '10px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('★ ★ ★', width / 2, height - 10);
+        } 0);
+                    ctx.lineTo(cornerRadius, 0);
+                    ctx.quadraticCurveTo(0, 0, 0, cornerRadius);
+                    ctx.closePath();
+                    ctx.fill();
                     
-                    compressedPhotos.forEach((photoData, index) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const y = startY + (index * 170);
-                            ctx.drawImage(img, 20, y, photoSize, 150);
-                            
-                            photosDrawn++;
-                            if (photosDrawn === compressedPhotos.length) {
-                                // Add footer
-                                ctx.fillStyle = '#d4b895';
-                                ctx.font = '10px Arial';
-                                ctx.textAlign = 'center';
-                                ctx.fillText('Thanks for celebrating!', canvas.width/2, canvas.height - 20);
+                    // Top-right corner
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width, 0);
+                    ctx.lineTo(canvas.width - cornerRadius, 0);
+                    ctx.quadraticCurveTo(canvas.width, 0, canvas.width, cornerRadius);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Bottom-left corner
+                    ctx.beginPath();
+                    ctx.moveTo(0, canvas.height);
+                    ctx.lineTo(0, canvas.height - cornerRadius);
+                    ctx.quadraticCurveTo(0, canvas.height, cornerRadius, canvas.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Bottom-right corner
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width, canvas.height);
+                    ctx.lineTo(canvas.width, canvas.height - cornerRadius);
+                    ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - cornerRadius, canvas.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Reset composite operation
+                    ctx.globalCompositeOperation = 'source-over';
+                    
+                    // Add background pattern (simulating background.png)
+                    createBackgroundPattern(ctx, canvas.width, canvas.height);
+                    
+                    // Draw photos in exact positions
+                    if (capturedPhotos && capturedPhotos.length > 0) {
+                        let photosProcessed = 0;
+                        const photoMargin = 45; // 7.5% margin like CSS
+                        const photoWidth = canvas.width - (photoMargin * 2);
+                        const photoHeight = Math.floor(canvas.height * 0.23); // 23% of height each
+                        const startY = Math.floor(canvas.height * 0.07); // Start at 7% from top
+                        const photoSpacing = Math.floor(canvas.height * 0.015); // 1.5% spacing
+                        
+                        capturedPhotos.forEach((photo, index) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                const y = startY + (index * (photoHeight + photoSpacing));
                                 
-                                resolve(canvas.toDataURL('image/jpeg', 0.5));
-                            }
-                        };
-                        img.src = photoData;
-                    });
-                } else {
-                    resolve(canvas.toDataURL('image/jpeg', 0.5));
+                                // Draw photo border (matching CSS border)
+                                ctx.fillStyle = '#d4b895';
+                                ctx.fillRect(photoMargin - 4, y - 4, photoWidth + 8, photoHeight + 8);
+                                
+                                // Apply filter if photo has one
+                                if (photo.filter && photo.filter !== 'none') {
+                                    ctx.filter = getCanvasFilter(photo.filter);
+                                }
+                                
+                                // Draw the photo
+                                ctx.drawImage(img, photoMargin, y, photoWidth, photoHeight);
+                                
+                                // Reset filter
+                                ctx.filter = 'none';
+                                
+                                photosProcessed++;
+                                if (photosProcessed === capturedPhotos.length) {
+                                    // Add title and decorations
+                                    addPhotoStripTitle(ctx, canvas.width, canvas.height);
+                                    addPhotoStripDecorations(ctx, canvas.width, canvas.height);
+                                    
+                                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // Higher quality
+                                }
+                            };
+                            
+                            img.onerror = () => {
+                                console.error('Failed to load photo', index);
+                                photosProcessed++;
+                                if (photosProcessed === capturedPhotos.length) {
+                                    addPhotoStripTitle(ctx, canvas.width, canvas.height);
+                                    addPhotoStripDecorations(ctx, canvas.width, canvas.height);
+                                    resolve(canvas.toDataURL('image/jpeg', 0.8));
+                                }
+                            };
+                            
+                            img.src = photo.data;
+                        });
+                    } else {
+                        // No photos, just title and decorations
+                        addPhotoStripTitle(ctx, canvas.width, canvas.height);
+                        addPhotoStripDecorations(ctx, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    }
+                    
+                } catch (error) {
+                    console.error('Photo strip creation failed:', error);
+                    reject(error);
                 }
             });
+        }
+
+        // Create background pattern to simulate background.png
+        function createBackgroundPattern(ctx, width, height) {
+            // Create subtle background texture
+            ctx.globalAlpha = 0.1;
+            
+            // Top background area
+            const topHeight = height * 0.07;
+            ctx.fillStyle = '#c9a876';
+            ctx.fillRect(0, 0, width, topHeight);
+            
+            // Bottom background area (yellow section)
+            const bottomHeight = height * 0.25;
+            const bottomY = height - bottomHeight;
+            ctx.fillStyle = '#d4b895';
+            ctx.fillRect(0, bottomY, width, bottomHeight);
+            
+            // Add subtle texture pattern
+            for (let i = 0; i < 20; i++) {
+                ctx.fillStyle = `rgba(200, 168, 118, ${0.1 + Math.random() * 0.1})`;
+                ctx.fillRect(
+                    Math.random() * width, 
+                    Math.random() * height, 
+                    Math.random() * 50 + 10, 
+                    Math.random() * 50 + 10
+                );
+            }
+            
+            ctx.globalAlpha = 1.0;
+        }
+
+        // Add exact title styling matching the display
+        function addPhotoStripTitle(ctx, width, height) {
+            const titleX = width * 0.1; // 10% from left like CSS
+            const titleY = height * 0.78; // 78% down
+            
+            ctx.fillStyle = '#d4b895';
+            ctx.textAlign = 'left';
+            
+            // "Brittanys" in Dancing Script style
+            ctx.font = 'italic bold 80px serif'; // Large size for high quality
+            ctx.fillText("Brittanys", titleX, titleY);
+            
+            // "22nd" 
+            ctx.font = 'italic bold 76px serif';
+            ctx.fillText("22nd", titleX, titleY + 80);
+            
+            // "BDAY" in Cinzel style
+            ctx.font = 'bold 72px serif';
+            ctx.letterSpacing = '8px';
+            ctx.fillText("BDAY", titleX, titleY + 160);
+        }
+
+        // Add decorative elements matching the display
+        function addPhotoStripDecorations(ctx, width, height) {
+            // Stars at bottom matching CSS
+            ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
+            ctx.font = '24px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', width / 2, height - 30);
+            
+            // Add cowboy silhouette at bottom (simulating the cowboy.png)
+            ctx.globalAlpha = 0.12;
+            ctx.fillStyle = '#8b7355';
+            
+            // Simple cowboy hat shape
+            const hatY = height - 120;
+            const hatCenterX = width / 2;
+            
+            // Hat brim
+            ctx.fillRect(hatCenterX - 60, hatY + 20, 120, 8);
+            
+            // Hat crown
+            ctx.beginPath();
+            ctx.arc(hatCenterX, hatY, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.globalAlpha = 1.0;
         }
 
         // Make functions available globally for onclick handlers
