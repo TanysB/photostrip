@@ -1258,18 +1258,23 @@
                 return;
             }
 
-            console.log('🔧 SIMPLE TEST: Attempting basic email send...');
+            console.log('🔧 SIMPLE TEST: Attempting basic email send to:', email);
+            
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Testing...';
             
             try {
                 const result = await emailjs.send(
                     'service_9n5lgms',
                     'template_js58xgg',
                     {
-                        to_email: email,
-                        to_name: 'Test User',
+                        to_email: email,  // This should make it dynamic
+                        to_name: email.split('@')[0],
                         from_name: 'Photo Booth Test',
-                        subject: 'Test Email',
-                        message: 'This is a test email to verify EmailJS is working.',
+                        subject: 'Test Email from Photo Booth',
+                        message: 'This is a test email to verify EmailJS is working with dynamic recipients.',
                         photo_strip: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=',
                         photo1: '',
                         photo2: '',
@@ -1277,12 +1282,27 @@
                     }
                 );
                 
-                console.log('✅ Simple email test successful:', result);
-                showStatusMessage('✅ Simple email test successful! Check your inbox.', 'success');
+                console.log('✅ Simple email test successful to:', email, result);
+                showStatusMessage(`✅ Test email sent to ${email}! Check your inbox.`, 'success');
                 
             } catch (error) {
                 console.error('❌ Simple email test failed:', error);
-                showStatusMessage(`❌ Simple email failed: ${error.text || error.message}`, 'error');
+                
+                let errorMsg = 'Test email failed: ';
+                if (error.status === 401) {
+                    errorMsg += 'Authentication failed - check your EmailJS keys';
+                } else if (error.status === 402) {
+                    errorMsg += 'Monthly quota exceeded';
+                } else if (error.text) {
+                    errorMsg += error.text;
+                } else {
+                    errorMsg += error.message || 'Unknown error';
+                }
+                
+                showStatusMessage(errorMsg, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
             }
         }
 
