@@ -777,9 +777,20 @@
             </div>
             <div class="phone-input-container">
                 <div style="text-align: center; margin-bottom: 0.2in; color: #3d2817; font-family: 'Dancing Script', cursive; font-size: 0.18in; font-weight: 600;">
-                    Get your photo strip on your phone!
+                    Scan QR Code with Your Phone!
                 </div>
-                <button class="strip-page-btn" onclick="sendPhotoStrip()">Get QR Code</button>
+                
+                <!-- QR Code Display Area -->
+                <div id="qrCodeDisplay" style="text-align: center; margin: 0.2in 0;">
+                    <div style="background: white; padding: 0.2in; border-radius: 20px; display: inline-block; box-shadow: 0 8px 20px rgba(61, 40, 23, 0.3);">
+                        <img id="qrCodeImage" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=Take%20your%20photos%20first!" 
+                             style="width: 3in; height: 3in; display: block;">
+                    </div>
+                    <p style="font-family: 'Playfair Display', serif; font-size: 0.12in; color: #666; margin: 0.15in 0;">
+                        Take photos, then scan to download!
+                    </p>
+                </div>
+                
                 <button class="strip-page-btn" onclick="restartSession()">Take New Photos</button>
             </div>
         </div>
