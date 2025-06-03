@@ -1094,135 +1094,113 @@
             }
         }
 
-        // Capture the photo strip exactly as it appears on screen
+        // Simplified and more reliable photo strip capture
         async function capturePhotoStripAsDisplayed() {
             return new Promise((resolve, reject) => {
                 try {
-                    const photoStripElement = document.querySelector('.photo-strip');
+                    console.log('🔧 DEBUG: Starting photo strip capture...');
                     
-                    if (!photoStripElement) {
-                        reject(new Error('Photo strip element not found'));
-                        return;
-                    }
-
-                    // Create a canvas to capture the photo strip
+                    // Create canvas for the photo strip
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // Get the computed style and dimensions of the photo strip
-                    const stripRect = photoStripElement.getBoundingClientRect();
-                    const scale = window.devicePixelRatio || 1;
+                    // Set canvas dimensions (similar to the display strip but optimized for email)
+                    canvas.width = 400;  // 2 inches at 200 DPI
+                    canvas.height = 1200; // 6 inches at 200 DPI
                     
-                    // Set canvas dimensions to match the photo strip (accounting for scaling)
-                    canvas.width = stripRect.width * scale;
-                    canvas.height = stripRect.height * scale;
-                    
-                    // Scale the context to ensure correct drawing operations
-                    ctx.scale(scale, scale);
-                    
-                    // Fill with the photo strip background color
+                    // Fill background
                     ctx.fillStyle = '#3d2817';
-                    ctx.fillRect(0, 0, stripRect.width, stripRect.height);
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
-                    // Draw decorative elements first
-                    drawPhotoStripDecorations(ctx, stripRect.width, stripRect.height);
+                    // Add rounded corners effect
+                    ctx.globalCompositeOperation = 'destination-out';
+                    const cornerRadius = 15;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(cornerRadius, 0);
+                    ctx.quadraticCurveTo(0, 0, 0, cornerRadius);
+                    ctx.closePath();
+                    ctx.fill();
                     
-                    // Wait for all images to be ready, then draw them
-                    const photos = photoStripElement.querySelectorAll('.strip-photo img');
-                    let imagesLoaded = 0;
+                    // Reset composite operation
+                    ctx.globalCompositeOperation = 'source-over';
                     
-                    if (photos.length === 0) {
-                        // No photos to load, just resolve with decorations
+                    // Draw title section
+                    ctx.fillStyle = '#d4b895';
+                    ctx.textAlign = 'left';
+                    
+                    // "Brittanys" in Dancing Script style
+                    ctx.font = 'italic bold 32px serif';
+                    ctx.fillText("Brittanys", 30, 980);
+                    
+                    // "22nd" 
+                    ctx.font = 'italic bold 30px serif';
+                    ctx.fillText("22nd", 30, 1020);
+                    
+                    // "BDAY"
+                    ctx.font = 'bold 28px serif';
+                    ctx.fillText("BDAY", 30, 1060);
+                    
+                    // Add decorative stars at bottom
+                    ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
+                    ctx.font = '14px serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, 1180);
+                    
+                    // Draw photos
+                    if (!capturedPhotos || capturedPhotos.length === 0) {
+                        console.log('🔧 DEBUG: No photos to draw, returning strip with text only');
                         resolve(canvas.toDataURL('image/jpeg', 0.9));
                         return;
                     }
                     
-                    photos.forEach((img, index) => {
-                        if (img.complete && img.naturalHeight !== 0) {
-                            // Image is already loaded
-                            drawPhotoToCanvas(ctx, img, index, stripRect.width, stripRect.height);
-                            imagesLoaded++;
+                    let photosProcessed = 0;
+                    const photoWidth = canvas.width - 60; // 30px margin on each side
+                    const photoHeight = 280; // Fixed height for each photo
+                    const startY = 50;
+                    const photoSpacing = 20;
+                    
+                    console.log('🔧 DEBUG: Processing', capturedPhotos.length, 'photos');
+                    
+                    capturedPhotos.forEach((photo, index) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const y = startY + (index * (photoHeight + photoSpacing));
                             
-                            if (imagesLoaded === photos.length) {
-                                // Add title text last
-                                drawPhotoStripTitle(ctx, stripRect.width, stripRect.height);
+                            // Draw photo border
+                            ctx.fillStyle = '#d4b895';
+                            ctx.fillRect(27, y - 3, photoWidth + 6, photoHeight + 6);
+                            
+                            // Draw the photo
+                            ctx.drawImage(img, 30, y, photoWidth, photoHeight);
+                            
+                            photosProcessed++;
+                            console.log('🔧 DEBUG: Processed photo', index + 1, 'of', capturedPhotos.length);
+                            
+                            if (photosProcessed === capturedPhotos.length) {
+                                console.log('🔧 DEBUG: All photos processed, generating final image');
                                 resolve(canvas.toDataURL('image/jpeg', 0.9));
                             }
-                        } else {
-                            // Wait for image to load
-                            const tempImg = new Image();
-                            tempImg.onload = () => {
-                                drawPhotoToCanvas(ctx, tempImg, index, stripRect.width, stripRect.height);
-                                imagesLoaded++;
-                                
-                                if (imagesLoaded === photos.length) {
-                                    // Add title text last
-                                    drawPhotoStripTitle(ctx, stripRect.width, stripRect.height);
-                                    resolve(canvas.toDataURL('image/jpeg', 0.9));
-                                }
-                            };
-                            tempImg.onerror = () => {
-                                console.warn(`Failed to load photo ${index + 1}`);
-                                imagesLoaded++;
-                                
-                                if (imagesLoaded === photos.length) {
-                                    drawPhotoStripTitle(ctx, stripRect.width, stripRect.height);
-                                    resolve(canvas.toDataURL('image/jpeg', 0.9));
-                                }
-                            };
-                            tempImg.src = img.src;
-                        }
+                        };
+                        
+                        img.onerror = (error) => {
+                            console.error('🔧 DEBUG: Failed to load photo', index + 1, error);
+                            photosProcessed++;
+                            
+                            if (photosProcessed === capturedPhotos.length) {
+                                resolve(canvas.toDataURL('image/jpeg', 0.9));
+                            }
+                        };
+                        
+                        // Set the image source
+                        img.src = photo.data;
                     });
                     
                 } catch (error) {
+                    console.error('🔧 DEBUG: Photo strip capture failed:', error);
                     reject(error);
                 }
             });
-        }
-
-        // Draw photo strip decorative elements
-        function drawPhotoStripDecorations(ctx, width, height) {
-            // Draw the stars at the bottom
-            ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
-            ctx.font = '12px serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', width / 2, height - 10);
-        }
-
-        // Draw individual photo to canvas
-        function drawPhotoToCanvas(ctx, img, index, stripWidth, stripHeight) {
-            // Calculate photo dimensions and position based on CSS layout
-            const photoMargin = stripWidth * 0.05; // 5% margin on each side
-            const photoWidth = stripWidth - (photoMargin * 2);
-            const photoHeight = stripHeight * 0.28; // Each photo takes about 28% of strip height
-            const photoY = (stripHeight * 0.08) + (index * (photoHeight + (stripHeight * 0.02))); // Start at 8% from top, with 2% spacing
-            
-            // Draw photo border
-            ctx.fillStyle = '#d4b895';
-            ctx.fillRect(photoMargin - 2, photoY - 2, photoWidth + 4, photoHeight + 4);
-            
-            // Draw the photo
-            ctx.drawImage(img, photoMargin, photoY, photoWidth, photoHeight);
-        }
-
-        // Draw photo strip title
-        function drawPhotoStripTitle(ctx, width, height) {
-            const titleY = height * 0.75; // Position title at 75% down the strip
-            
-            ctx.fillStyle = '#d4b895';
-            ctx.textAlign = 'left';
-            
-            // Brittany's
-            ctx.font = 'bold 24px Dancing Script, cursive';
-            ctx.fillText("Brittanys", width * 0.1, titleY);
-            
-            // 22nd
-            ctx.font = 'bold 22px Dancing Script, cursive';
-            ctx.fillText("22nd", width * 0.1, titleY + 25);
-            
-            // BDAY
-            ctx.font = 'bold 20px Cinzel, serif';
-            ctx.fillText("BDAY", width * 0.1, titleY + 50);
         }
 
         // Test function for debugging
