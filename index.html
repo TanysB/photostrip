@@ -1112,120 +1112,191 @@ Enjoy your memories! 📸✨`,
             return result.secure_url;
         }
 
-        // Screenshot-based Photo Strip Creation - PERFECT MATCH
+        // Screenshot-based Photo Strip Creation - IMPROVED VERSION
         async function createUltraHDPhotoStrip(photos) {
             return new Promise(async (resolve) => {
                 try {
-                    console.log('📸 Taking screenshot of actual photo strip display...');
+                    console.log('📸 Attempting to screenshot the photo strip...');
                     
-                    // Use html2canvas to capture the photo strip page
-                    const stripPageElement = document.getElementById('stripPage');
+                    // Get the photo strip element
+                    const photoStripElement = document.querySelector('.photo-strip');
                     
-                    // Temporarily hide the right side (email input area) for cleaner crop
+                    if (!photoStripElement) {
+                        console.error('❌ Photo strip element not found');
+                        resolve(await createCanvasFallbackStrip(photos));
+                        return;
+                    }
+                    
+                    // Temporarily hide elements that might interfere
                     const inputContainer = document.querySelector('.phone-input-container');
-                    const originalDisplay = inputContainer.style.display;
-                    inputContainer.style.display = 'none';
-                    
-                    // Also temporarily hide any status messages
                     const statusMsg = document.getElementById('statusMessage');
+                    
+                    const originalInputDisplay = inputContainer.style.display;
                     const originalStatusDisplay = statusMsg.style.display;
+                    
+                    inputContainer.style.display = 'none';
                     statusMsg.style.display = 'none';
                     
-                    // Take screenshot of the entire strip page
-                    const canvas = await html2canvas(stripPageElement, {
-                        backgroundColor: null,
+                    // Wait a moment for DOM to update
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    console.log('🎯 Targeting photo strip element directly...');
+                    
+                    // Capture just the photo strip element
+                    const canvas = await html2canvas(photoStripElement, {
+                        backgroundColor: '#3d2817',
                         scale: 2, // High resolution
                         useCORS: true,
                         allowTaint: true,
-                        width: stripPageElement.offsetWidth,
-                        height: stripPageElement.offsetHeight,
-                        x: 0,
-                        y: 0
+                        logging: true, // Enable logging for debugging
+                        width: photoStripElement.offsetWidth,
+                        height: photoStripElement.offsetHeight,
+                        scrollX: 0,
+                        scrollY: 0,
+                        windowWidth: window.innerWidth,
+                        windowHeight: window.innerHeight
                     });
                     
-                    // Restore the hidden elements
-                    inputContainer.style.display = originalDisplay;
+                    // Restore hidden elements
+                    inputContainer.style.display = originalInputDisplay;
                     statusMsg.style.display = originalStatusDisplay;
                     
-                    // Crop to just the photo strip area (left half of the page)
-                    const cropCanvas = document.createElement('canvas');
-                    const cropCtx = cropCanvas.getContext('2d');
+                    console.log('✅ Screenshot captured successfully!');
+                    console.log(`📐 Screenshot dimensions: ${canvas.width}x${canvas.height}`);
                     
-                    // Calculate crop dimensions - we want just the photo strip
-                    const photoStripElement = document.querySelector('.photo-strip');
-                    const stripRect = photoStripElement.getBoundingClientRect();
-                    const pageRect = stripPageElement.getBoundingClientRect();
-                    
-                    // Calculate relative position and size
-                    const relativeLeft = (stripRect.left - pageRect.left) * 2; // *2 for scale
-                    const relativeTop = (stripRect.top - pageRect.top) * 2;
-                    const stripWidth = stripRect.width * 2; // *2 for scale  
-                    const stripHeight = stripRect.height * 2;
-                    
-                    // Set crop canvas size to just the photo strip
-                    cropCanvas.width = stripWidth;
-                    cropCanvas.height = stripHeight;
-                    
-                    // Draw the cropped section
-                    cropCtx.drawImage(
-                        canvas,
-                        relativeLeft, relativeTop, stripWidth, stripHeight, // Source area
-                        0, 0, stripWidth, stripHeight // Destination area
-                    );
-                    
-                    console.log('✅ Screenshot captured and cropped to photo strip!');
-                    console.log(`📐 Cropped dimensions: ${stripWidth}x${stripHeight}`);
-                    
-                    // Return the cropped photo strip as data URL
-                    resolve(cropCanvas.toDataURL('image/jpeg', 0.95));
+                    // Convert to high-quality JPEG
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+                    resolve(dataUrl);
                     
                 } catch (error) {
-                    console.error('❌ Screenshot failed, falling back to canvas method:', error);
+                    console.error('❌ Screenshot failed:', error);
+                    console.log('🔄 Falling back to canvas recreation method...');
                     
-                    // Fallback to canvas method if screenshot fails
+                    // Restore elements if they were hidden
+                    try {
+                        const inputContainer = document.querySelector('.phone-input-container');
+                        const statusMsg = document.getElementById('statusMessage');
+                        inputContainer.style.display = '';
+                        statusMsg.style.display = '';
+                    } catch (e) {
+                        console.log('Element restoration failed, continuing...');
+                    }
+                    
+                    // Use fallback method
                     resolve(await createCanvasFallbackStrip(photos));
                 }
             });
         }
         
-        // Fallback canvas method (simplified version of original)
+        // Enhanced fallback canvas method that recreates the exact layout
         async function createCanvasFallbackStrip(photos) {
+            console.log('🎨 Creating fallback canvas version...');
+            
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                canvas.width = 400;
-                canvas.height = 1200;
+                // Get actual photo strip dimensions from CSS
+                const photoStripElement = document.querySelector('.photo-strip');
+                const computedStyle = window.getComputedStyle(photoStripElement);
                 
+                // Use the actual displayed dimensions
+                const actualWidth = photoStripElement.offsetWidth;
+                const actualHeight = photoStripElement.offsetHeight;
+                
+                // Create high-res canvas
+                canvas.width = actualWidth * 2; // 2x for quality
+                canvas.height = actualHeight * 2;
+                
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                // Background
                 ctx.fillStyle = '#3d2817';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Simple fallback layout
+                // Rounded corners
+                ctx.globalCompositeOperation = 'destination-in';
+                ctx.beginPath();
+                ctx.roundRect(0, 0, canvas.width, canvas.height, 30);
+                ctx.fill();
+                ctx.globalCompositeOperation = 'source-over';
+                
+                // Add title at bottom
+                const titleY = canvas.height - 240;
+                ctx.fillStyle = '#d4b895';
+                ctx.textAlign = 'left';
+                
+                ctx.font = 'italic 60px serif';
+                ctx.fillText("Brittanys", 30, titleY + 30);
+                ctx.fillText("22nd", 30, titleY + 90);
+                
+                ctx.font = '100 36px serif';
+                ctx.fillText("BDAY", 30, titleY + 140);
+                
+                // Stars at bottom
+                ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
+                ctx.font = '12px serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
+                
+                // Process photos
                 const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
                 let photosProcessed = 0;
                 
                 if (sessionPhotos.length === 0) {
+                    console.log('⚠️ No photos found for current session');
                     resolve(canvas.toDataURL('image/jpeg', 0.95));
                     return;
                 }
                 
+                const photoWidth = canvas.width - 60;
+                const photoHeight = (canvas.height - 300) / 3 - 20; // Distribute remaining space
+                const startY = 40;
+                
                 sessionPhotos.forEach((photoData, index) => {
                     const img = new Image();
                     img.onload = () => {
-                        const y = 50 + (index * 300);
-                        ctx.drawImage(img, 50, y, 300, 200);
+                        const y = startY + (index * (photoHeight + 20));
+                        
+                        // Photo border
+                        ctx.fillStyle = '#d4b895';
+                        ctx.fillRect(28, y - 2, photoWidth + 4, photoHeight + 4);
+                        
+                        // Photo background
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(30, y, photoWidth, photoHeight);
+                        
+                        // Draw photo with filter
+                        if (photoData.filter && photoData.filter !== 'none') {
+                            const tempCanvas = document.createElement('canvas');
+                            const tempCtx = tempCanvas.getContext('2d');
+                            tempCanvas.width = photoWidth;
+                            tempCanvas.height = photoHeight;
+                            
+                            tempCtx.filter = getCanvasFilter(photoData.filter);
+                            tempCtx.drawImage(img, 0, 0, photoWidth, photoHeight);
+                            
+                            ctx.drawImage(tempCanvas, 30, y);
+                        } else {
+                            ctx.drawImage(img, 30, y, photoWidth, photoHeight);
+                        }
                         
                         photosProcessed++;
                         if (photosProcessed === sessionPhotos.length) {
+                            console.log('✅ Fallback canvas photo strip created!');
                             resolve(canvas.toDataURL('image/jpeg', 0.95));
                         }
                     };
+                    
                     img.onerror = () => {
+                        console.error('Failed to load photo', index);
                         photosProcessed++;
                         if (photosProcessed === sessionPhotos.length) {
                             resolve(canvas.toDataURL('image/jpeg', 0.95));
                         }
                     };
+                    
                     img.src = photoData.data;
                 });
             });
@@ -1433,27 +1504,41 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             button.textContent = '🔧 Testing...';
             
             try {
-                showStatusMessage('Testing Cloudinary connection...', 'info');
+                showStatusMessage('Testing screenshot capability...', 'info');
                 
-                const testCanvas = document.createElement('canvas');
-                testCanvas.width = 100;
-                testCanvas.height = 100;
-                const testCtx = testCanvas.getContext('2d');
-                
-                testCtx.fillStyle = '#3d2817';
-                testCtx.fillRect(0, 0, 100, 100);
-                testCtx.fillStyle = '#d4b895';
-                testCtx.font = '20px serif';
-                testCtx.textAlign = 'center';
-                testCtx.fillText('TEST', 50, 55);
-                
-                const testImage = testCanvas.toDataURL('image/jpeg', 0.8);
-                const uploadedUrl = await uploadImageToCloudinary(testImage);
-                
-                showStatusMessage(`✅ Cloudinary test successful! Image uploaded: ${uploadedUrl.substring(0, 50)}...`, 'success');
+                // Test screenshot first
+                const photoStripElement = document.querySelector('.photo-strip');
+                if (photoStripElement) {
+                    console.log('📸 Testing screenshot of photo strip...');
+                    
+                    const testCanvas = await html2canvas(photoStripElement, {
+                        backgroundColor: '#3d2817',
+                        scale: 1,
+                        logging: true,
+                        useCORS: true,
+                        allowTaint: true
+                    });
+                    
+                    console.log('✅ Screenshot test successful!', testCanvas.width, 'x', testCanvas.height);
+                    showStatusMessage('✅ Screenshot test passed!', 'success');
+                    
+                    // Now test Cloudinary upload
+                    setTimeout(async () => {
+                        showStatusMessage('Testing Cloudinary connection...', 'info');
+                        
+                        const testImage = testCanvas.toDataURL('image/jpeg', 0.8);
+                        const uploadedUrl = await uploadImageToCloudinary(testImage);
+                        
+                        showStatusMessage(`✅ Full test successful! Screenshot + Cloudinary working: ${uploadedUrl.substring(0, 50)}...`, 'success');
+                    }, 1000);
+                    
+                } else {
+                    showStatusMessage('❌ Photo strip not found - take photos first!', 'error');
+                }
                 
             } catch (error) {
-                showStatusMessage('❌ Cloudinary test failed: ' + error.message, 'error');
+                console.error('Test failed:', error);
+                showStatusMessage('❌ Test failed: ' + error.message, 'error');
             } finally {
                 button.disabled = false;
                 button.textContent = originalText;
