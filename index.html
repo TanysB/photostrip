@@ -1112,14 +1112,14 @@ Enjoy your memories! 📸✨`,
             return result.secure_url;
         }
 
-        // Screenshot-based Photo Strip Creation - FORCE RENDER ALL CONTENT
+        // Screenshot-based Photo Strip Creation - CROP TO PHOTO STRIP ONLY
         async function createUltraHDPhotoStrip(photos) {
             return new Promise(async (resolve) => {
                 try {
-                    console.log('📸 Preparing elements for screenshot...');
+                    console.log('📸 Preparing to screenshot and crop to photo strip only...');
                     
-                    // First, let's force all images to be inline data URLs instead of external references
-                    await convertImagesToDataUrls();
+                    // First, ensure all photos are properly displayed in the strip
+                    await ensurePhotosAreVisible();
                     
                     // Get the entire strip page
                     const stripPageElement = document.getElementById('stripPage');
@@ -1130,18 +1130,23 @@ Enjoy your memories! 📸✨`,
                         return;
                     }
                     
-                    // Temporarily hide status messages for cleaner screenshot
+                    // Temporarily hide status messages and buttons for cleaner screenshot
                     const statusMsg = document.getElementById('statusMessage');
-                    const originalStatusDisplay = statusMsg.style.display;
-                    statusMsg.style.display = 'none';
+                    const inputContainer = document.querySelector('.phone-input-container');
                     
-                    // Wait for all images to be processed
+                    const originalStatusDisplay = statusMsg.style.display;
+                    const originalInputDisplay = inputContainer.style.display;
+                    
+                    statusMsg.style.display = 'none';
+                    inputContainer.style.display = 'none';
+                    
+                    // Wait for DOM updates
                     await new Promise(resolve => setTimeout(resolve, 500));
                     
-                    console.log('🎯 Taking screenshot with enhanced settings...');
+                    console.log('🎯 Taking full page screenshot...');
                     
-                    // Capture with settings optimized for dynamic content
-                    const canvas = await html2canvas(stripPageElement, {
+                    // Capture the entire strip page first
+                    const fullCanvas = await html2canvas(stripPageElement, {
                         backgroundColor: '#d4b895',
                         scale: 2,
                         useCORS: true,
@@ -1154,139 +1159,230 @@ Enjoy your memories! 📸✨`,
                         windowWidth: window.innerWidth,
                         windowHeight: window.innerHeight,
                         removeContainer: false,
-                        foreignObjectRendering: true,
-                        ignoreElements: function(element) {
-                            // Don't ignore any elements - capture everything
-                            return false;
-                        }
+                        foreignObjectRendering: true
                     });
                     
-                    // Restore status message
+                    // Restore hidden elements
                     statusMsg.style.display = originalStatusDisplay;
+                    inputContainer.style.display = originalInputDisplay;
                     
-                    console.log('✅ Screenshot captured with enhanced settings!');
-                    console.log(`📐 Final dimensions: ${canvas.width}x${canvas.height}`);
+                    console.log('✂️ Cropping to photo strip area only...');
                     
-                    // Convert to high-quality JPEG
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-                    resolve(dataUrl);
+                    // Get photo strip position relative to the page
+                    const photoStripElement = document.querySelector('.photo-strip');
+                    const stripRect = photoStripElement.getBoundingClientRect();
+                    const pageRect = stripPageElement.getBoundingClientRect();
+                    
+                    // Calculate crop area (left half where photo strip is)
+                    const cropX = (stripRect.left - pageRect.left) * 2; // *2 for scale
+                    const cropY = (stripRect.top - pageRect.top) * 2;
+                    const cropWidth = stripRect.width * 2;
+                    const cropHeight = stripRect.height * 2;
+                    
+                    // Create cropped canvas
+                    const croppedCanvas = document.createElement('canvas');
+                    const croppedCtx = croppedCanvas.getContext('2d');
+                    
+                    croppedCanvas.width = cropWidth;
+                    croppedCanvas.height = cropHeight;
+                    
+                    // Draw only the photo strip area
+                    croppedCtx.drawImage(
+                        fullCanvas,
+                        cropX, cropY, cropWidth, cropHeight, // Source area (photo strip)
+                        0, 0, cropWidth, cropHeight // Destination (entire crop canvas)
+                    );
+                    
+                    console.log('✅ Photo strip cropped successfully!');
+                    console.log(`📐 Cropped dimensions: ${cropWidth}x${cropHeight}`);
+                    
+                    // If photos aren't visible in the screenshot, overlay them manually
+                    const finalCanvas = await overlayPhotosIfNeeded(croppedCanvas, photos);
+                    
+                    resolve(finalCanvas.toDataURL('image/jpeg', 0.95));
                     
                 } catch (error) {
-                    console.error('❌ Enhanced screenshot failed:', error);
+                    console.error('❌ Screenshot and crop failed:', error);
                     console.log('🔄 Using fallback canvas method...');
                     resolve(await createCanvasFallbackStrip(photos));
                 }
             });
         }
         
-        // Function to convert all images to data URLs for better screenshot compatibility
-        async function convertImagesToDataUrls() {
-            console.log('🔄 Converting images to data URLs for screenshot compatibility...');
+        // Ensure photos are visible in the DOM before screenshot
+        async function ensurePhotosAreVisible() {
+            console.log('👁️ Ensuring all photos are visible...');
             
-            // Convert captured photos in the strip
-            const stripPhotos = document.querySelectorAll('.strip-photo img');
-            for (let img of stripPhotos) {
-                if (img.src && !img.src.startsWith('data:')) {
-                    try {
-                        const dataUrl = await imageToDataUrl(img);
-                        img.src = dataUrl;
-                        console.log('✅ Converted strip photo to data URL');
-                    } catch (error) {
-                        console.log('⚠️ Could not convert strip photo:', error);
+            const stripPhotos = document.querySelectorAll('.strip-photo');
+            const sessionPhotos = capturedPhotos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
+            
+            // Make sure each photo is properly displayed
+            sessionPhotos.forEach((photoData, index) => {
+                const stripPhoto = stripPhotos[index];
+                if (stripPhoto) {
+                    // Clear and recreate the image element
+                    stripPhoto.innerHTML = '';
+                    
+                    const img = document.createElement('img');
+                    img.src = photoData.data;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    
+                    // Apply filter if needed
+                    if (photoData.filter && photoData.filter !== 'none') {
+                        img.classList.add(photoData.filter + '-filter');
                     }
+                    
+                    stripPhoto.appendChild(img);
+                    console.log(`✅ Photo ${index + 1} refreshed in DOM`);
                 }
-            }
+            });
             
-            // Handle background image if it exists
-            const photoStrip = document.querySelector('.photo-strip');
-            if (photoStrip) {
-                // Force background to be visible by setting it as an actual img element temporarily
-                const computedStyle = window.getComputedStyle(photoStrip, '::before');
-                const backgroundImage = computedStyle.backgroundImage;
-                
-                if (backgroundImage && backgroundImage !== 'none') {
-                    console.log('📋 Found background image, ensuring visibility...');
-                    // The background image will be handled by the fallback if screenshot fails
-                }
-            }
+            // Wait for images to load
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
         
-        // Helper function to convert img element to data URL
-        function imageToDataUrl(img) {
-            return new Promise((resolve, reject) => {
-                const canvas = document.createElement('canvas');
+        // Overlay photos manually if they didn't appear in screenshot
+        async function overlayPhotosIfNeeded(canvas, photos) {
+            return new Promise((resolve) => {
+                console.log('🔍 Checking if photos are visible in screenshot...');
+                
+                // Simple check: if canvas is mostly solid colors, photos likely didn't capture
                 const ctx = canvas.getContext('2d');
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
                 
-                canvas.width = img.naturalWidth || img.width;
-                canvas.height = img.naturalHeight || img.height;
+                let colorVariance = 0;
+                for (let i = 0; i < pixels.length; i += 16) { // Sample every 4th pixel
+                    const r = pixels[i];
+                    const g = pixels[i + 1];
+                    const b = pixels[i + 2];
+                    colorVariance += Math.abs(r - 128) + Math.abs(g - 128) + Math.abs(b - 128);
+                }
                 
-                try {
-                    ctx.drawImage(img, 0, 0);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-                    resolve(dataUrl);
-                } catch (error) {
-                    reject(error);
+                const avgVariance = colorVariance / (pixels.length / 16);
+                
+                if (avgVariance < 30) { // Low variance = likely no photos captured
+                    console.log('📸 Photos not visible in screenshot, overlaying manually...');
+                    return overlayPhotosManually(canvas, photos);
+                } else {
+                    console.log('✅ Photos appear to be captured in screenshot');
+                    resolve(canvas);
                 }
             });
         }
         
-        // Enhanced fallback canvas method that recreates the EXACT layout users see
+        // Manually overlay photos onto the screenshot
+        function overlayPhotosManually(canvas, photos) {
+            return new Promise((resolve) => {
+                const ctx = canvas.getContext('2d');
+                const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
+                
+                if (sessionPhotos.length === 0) {
+                    resolve(canvas);
+                    return;
+                }
+                
+                console.log(`🎨 Manually overlaying ${sessionPhotos.length} photos...`);
+                
+                let photosProcessed = 0;
+                
+                // Calculate photo positions based on the actual CSS layout
+                const photoWidth = canvas.width - 60; // Account for padding
+                const photoHeight = 250 * 2; // Scale up for 2x resolution
+                const startY = 40 * 2; // Scale up margin
+                const spacing = 16 * 2; // Scale up spacing
+                const paddingX = 30 * 2; // Scale up padding
+                
+                sessionPhotos.forEach((photoData, index) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const y = startY + (index * (photoHeight + spacing));
+                        
+                        // Clear the black square area first
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(paddingX, y, photoWidth, photoHeight);
+                        
+                        // Draw photo with filter if needed
+                        if (photoData.filter && photoData.filter !== 'none') {
+                            const tempCanvas = document.createElement('canvas');
+                            const tempCtx = tempCanvas.getContext('2d');
+                            tempCanvas.width = photoWidth;
+                            tempCanvas.height = photoHeight;
+                            
+                            tempCtx.imageSmoothingEnabled = true;
+                            tempCtx.imageSmoothingQuality = 'high';
+                            tempCtx.filter = getCanvasFilter(photoData.filter);
+                            tempCtx.drawImage(img, 0, 0, photoWidth, photoHeight);
+                            
+                            ctx.drawImage(tempCanvas, paddingX, y);
+                            console.log(`✅ Overlaid photo ${index + 1} with ${photoData.filter} filter`);
+                        } else {
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
+                            ctx.drawImage(img, paddingX, y, photoWidth, photoHeight);
+                            console.log(`✅ Overlaid photo ${index + 1} without filter`);
+                        }
+                        
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            console.log('🎉 All photos manually overlaid successfully!');
+                            resolve(canvas);
+                        }
+                    };
+                    
+                    img.onerror = () => {
+                        console.error(`❌ Failed to load photo ${index + 1} for overlay`);
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            resolve(canvas);
+                        }
+                    };
+                    
+                    img.src = photoData.data;
+                });
+            });
+        }
+        
+        // Enhanced fallback canvas method - PHOTO STRIP ONLY
         async function createCanvasFallbackStrip(photos) {
-            console.log('🎨 Creating enhanced fallback - exact recreation of display...');
+            console.log('🎨 Creating fallback photo strip only...');
             
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // Get actual strip page dimensions
-                const stripPageElement = document.getElementById('stripPage');
-                const actualWidth = stripPageElement.offsetWidth;
-                const actualHeight = stripPageElement.offsetHeight;
+                // Get actual photo strip dimensions from the displayed element
+                const photoStripElement = document.querySelector('.photo-strip');
+                const actualWidth = photoStripElement.offsetWidth;
+                const actualHeight = photoStripElement.offsetHeight;
                 
-                // Create high-res canvas matching the actual page
+                // Create high-res canvas matching just the photo strip
                 canvas.width = actualWidth * 2; // 2x for quality
                 canvas.height = actualHeight * 2;
                 
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 
-                // Background - match the page background
-                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                gradient.addColorStop(0, '#d4b895');
-                gradient.addColorStop(1, '#c9a876');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Border - match the CSS border: 25px solid #3d2817
-                ctx.fillStyle = '#3d2817';
-                ctx.fillRect(0, 0, canvas.width, 50); // top border
-                ctx.fillRect(0, 0, 50, canvas.height); // left border  
-                ctx.fillRect(canvas.width - 50, 0, 50, canvas.height); // right border
-                ctx.fillRect(0, canvas.height - 50, canvas.width, 50); // bottom border
-                
-                // Photo strip area (left side of the layout)
-                const stripX = 80; // Account for border + margin
-                const stripY = 180; // Account for border + margin  
-                const stripWidth = 400; // Photo strip width scaled up
-                const stripHeight = 1200; // Photo strip height scaled up
-                
                 // Photo strip background
                 ctx.fillStyle = '#3d2817';
-                ctx.fillRect(stripX, stripY, stripWidth, stripHeight);
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Rounded corners for photo strip
+                // Rounded corners to match CSS
                 ctx.globalCompositeOperation = 'destination-in';
                 ctx.beginPath();
-                ctx.roundRect(stripX, stripY, stripWidth, stripHeight, 30);
+                ctx.roundRect(0, 0, canvas.width, canvas.height, 30);
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over';
                 
-                // Add the background.png pattern if available
+                // Add the background.png pattern at bottom
                 const backgroundImg = new Image();
                 backgroundImg.onload = () => {
-                    const bgY = stripY + stripHeight - 180; // Bottom area
+                    const bgHeight = 150; // 1.5in equivalent scaled
+                    const moveUpBy = 116; // 0.8in equivalent scaled
                     ctx.globalAlpha = 0.1;
-                    ctx.drawImage(backgroundImg, stripX, bgY, stripWidth, 116);
+                    ctx.drawImage(backgroundImg, 0, canvas.height - bgHeight - moveUpBy, canvas.width, bgHeight);
                     ctx.globalAlpha = 1.0;
                     drawPhotoStripContent();
                 };
@@ -1297,25 +1393,25 @@ Enjoy your memories! 📸✨`,
                 backgroundImg.src = 'background.png';
                 
                 function drawPhotoStripContent() {
-                    // Title area
-                    const titleY = stripY + stripHeight - 240;
+                    // Title area - exact match to CSS positioning
+                    const titleY = canvas.height - 240;
                     ctx.fillStyle = '#d4b895';
                     ctx.textAlign = 'left';
                     
-                    ctx.font = 'italic 80px serif';
-                    ctx.fillText("Brittanys", stripX + 30, titleY + 40);
-                    ctx.fillText("22nd", stripX + 30, titleY + 120);
+                    ctx.font = 'italic 80px serif'; // Great Vibes style scaled
+                    ctx.fillText("Brittanys", 30, titleY + 40);
+                    ctx.fillText("22nd", 30, titleY + 120);
                     
-                    ctx.font = '100 48px serif';
-                    ctx.fillText("BDAY", stripX + 30, titleY + 180);
+                    ctx.font = '100 48px serif'; // Cinzel light scaled
+                    ctx.fillText("BDAY", 30, titleY + 180);
                     
-                    // Decorative stars
+                    // Decorative stars at bottom
                     ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
                     ctx.font = '16px serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', stripX + stripWidth/2, stripY + stripHeight - 20);
+                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
                     
-                    // Draw the actual captured photos
+                    // Draw the captured photos in black squares
                     const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
                     let photosProcessed = 0;
                     
@@ -1325,28 +1421,30 @@ Enjoy your memories! 📸✨`,
                         return;
                     }
                     
-                    const photoWidth = stripWidth - 60;
-                    const photoHeight = 250;
-                    const photoStartY = stripY + 40;
-                    const photoSpacing = 16;
-                    const photoPadding = stripX + 30;
+                    // Photo positioning to match CSS exactly
+                    const photoWidth = canvas.width - 60; // padding: 0 0.15in scaled
+                    const photoHeight = 250; // height: 1.3in scaled  
+                    const photoStartY = 40; // margin-top: 0.2in scaled
+                    const photoSpacing = 16; // gap: 0.08in scaled
+                    const photoPadding = 30; // padding scaled
                     
-                    console.log(`📸 Drawing ${sessionPhotos.length} photos in fallback canvas`);
+                    console.log(`📸 Drawing ${sessionPhotos.length} photos in exact CSS positions`);
+                    console.log(`📐 Photo dimensions: ${photoWidth}x${photoHeight}`);
                     
                     sessionPhotos.forEach((photoData, index) => {
                         const img = new Image();
                         img.onload = () => {
                             const y = photoStartY + (index * (photoHeight + photoSpacing));
                             
-                            // Photo border
+                            // Photo border - matches CSS border: 2px solid #d4b895
                             ctx.fillStyle = '#d4b895';
                             ctx.fillRect(photoPadding - 4, y - 4, photoWidth + 8, photoHeight + 8);
                             
-                            // Photo background
+                            // Black square background
                             ctx.fillStyle = '#000000';
                             ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
                             
-                            // Draw photo with filter if applied
+                            // Insert the actual captured photo
                             if (photoData.filter && photoData.filter !== 'none') {
                                 console.log(`🎨 Applying ${photoData.filter} filter to photo ${index + 1}`);
                                 
@@ -1361,22 +1459,26 @@ Enjoy your memories! 📸✨`,
                                 tempCtx.drawImage(img, 0, 0, photoWidth, photoHeight);
                                 
                                 ctx.drawImage(tempCanvas, photoPadding, y);
+                                console.log(`✅ Photo ${index + 1} inserted with ${photoData.filter} filter`);
                             } else {
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
                                 ctx.drawImage(img, photoPadding, y, photoWidth, photoHeight);
+                                console.log(`✅ Photo ${index + 1} inserted without filter`);
                             }
                             
                             photosProcessed++;
                             if (photosProcessed === sessionPhotos.length) {
-                                // Add the button panel on the right side
-                                drawButtonPanel();
+                                console.log('🎉 Photo strip fallback complete with all photos inserted!');
+                                resolve(canvas.toDataURL('image/jpeg', 0.95));
                             }
                         };
                         
                         img.onerror = () => {
-                            console.error('Failed to load photo', index);
+                            console.error(`❌ Failed to load photo ${index + 1}`);
                             photosProcessed++;
                             if (photosProcessed === sessionPhotos.length) {
-                                drawButtonPanel();
+                                resolve(canvas.toDataURL('image/jpeg', 0.95));
                             }
                         };
                         
@@ -1384,35 +1486,12 @@ Enjoy your memories! 📸✨`,
                     });
                 }
                 
-                function drawButtonPanel() {
-                    // Right side button panel area
-                    const panelX = stripX + stripWidth + 100;
-                    const panelY = stripY + 200;
-                    const panelWidth = 600;
-                    
-                    // Panel title
-                    ctx.fillStyle = '#3d2817';
-                    ctx.font = '24px "Dancing Script", cursive';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('Get your small & crisp photos! Perfect iPhone size!', panelX + panelWidth/2, panelY);
-                    
-                    // Email input field representation
-                    ctx.fillStyle = 'rgba(212, 184, 149, 0.8)';
-                    ctx.fillRect(panelX + 50, panelY + 50, panelWidth - 100, 60);
-                    ctx.strokeStyle = '#3d2817';
-                    ctx.lineWidth = 4;
-                    ctx.strokeRect(panelX + 50, panelY + 50, panelWidth - 100, 60);
-                    
-                    // Placeholder text
-                    ctx.fillStyle = '#6b4423';
-                    ctx.font = 'italic 20px "Dancing Script", cursive';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('Enter your email address', panelX + panelWidth/2, panelY + 85);
-                    
-                    // Button representations
-                    const buttonNames = [
-                        '🔧 Test Cloudinary Setup',
-                        '📧 Test Email Template', 
+                // Fallback timeout
+                setTimeout(() => {
+                    drawPhotoStripContent();
+                }, 1000);
+            });
+        } 
                         '📧 Email Small & Crisp Photos',
                         '💾 Download Small & Crisp',
                         '📮 Email Tiny Preview',
