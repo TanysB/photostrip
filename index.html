@@ -810,7 +810,7 @@
             </div>
             <div class="phone-input-container">
                 <div style="text-align: center; margin-bottom: 0.1in; color: #3d2817; font-family: 'Dancing Script', cursive; font-size: 0.14in; font-weight: 600;">
-                    Get your perfect screenshot! Exactly what you see!
+                    Get your photo strip screenshot! Just the strip, no buttons!
                 </div>
                 <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
                 <div id="statusMessage"></div>
@@ -819,11 +819,11 @@
                 <!-- TEST BUTTON: Check if EmailJS template works -->
                 <button class="strip-page-btn" onclick="testEmailTemplate()" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">📧 Test Email Template</button>
                 <!-- TEST BUTTON: Test screenshot function -->
-                <button class="strip-page-btn" onclick="testScreenshotFunction()" style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); color: white;">📸 Test Screenshot</button>
+                <button class="strip-page-btn" onclick="testScreenshotFunction()" style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); color: white;">📸 Test Photo Strip Screenshot</button>
                 <!-- MAIN OPTION: Cloud upload (bypasses 50KB limit) -->
-                <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()">📧 Email Perfect Screenshot</button>
+                <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()">📧 Email Photo Strip Only</button>
                 <!-- BACKUP OPTION: Download -->
-                <button class="strip-page-btn" onclick="downloadUltraHDPhotoStrip()">💾 Download Screenshot</button>
+                <button class="strip-page-btn" onclick="downloadUltraHDPhotoStrip()">💾 Download Photo Strip Only</button>
                 <!-- ALTERNATIVE: Tiny preview -->
                 <button class="strip-page-btn" onclick="sendTinyPreview()">📮 Email Tiny Preview</button>
                 <button class="strip-page-btn" onclick="restartSession()">🔄 Take New Photos</button>
@@ -1079,7 +1079,7 @@
                 const cloudinaryUrl = await uploadImageToCloudinary(ultraHDStrip);
                 
                 button.textContent = '📧 Sending Email...';
-                showStatusMessage('Sending email with perfect screenshot...', 'info');
+                showStatusMessage('Sending email with photo strip screenshot...', 'info');
                 
                 // Send email with Cloudinary URL (no attachments = no 50KB limit!)
                 await emailjs.send('service_9n5lgms', 'template_js58xgg', {
@@ -1105,8 +1105,8 @@ Enjoy your memories! 📸✨`,
                     photo3: ''
                 });
                 
-                console.log('✅ Perfect screenshot email sent successfully via Cloudinary!');
-                showStatusMessage(`🎉 Perfect screenshot uploaded and email sent to ${email}! Exactly what you see on screen!`, 'success');
+                console.log('✅ Photo strip screenshot email sent successfully via Cloudinary!');
+                showStatusMessage(`🎉 Perfect photo strip screenshot uploaded and emailed to ${email}! Only the photo strip (like Image 1), no buttons or extra stuff!`, 'success');
                 emailInput.value = '';
                 
             } catch (error) {
@@ -1384,7 +1384,7 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             button.disabled = true;
             button.textContent = '📸 Taking Screenshot...';
             
-            showStatusMessage('Taking screenshot of your photo strip...', 'info');
+                            showStatusMessage('Taking screenshot of ONLY the photo strip (left side)...', 'info');
 
             try {
                 // Use the same screenshot function as email
@@ -1415,7 +1415,7 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                         
-                        showStatusMessage('📸 Perfect screenshot downloaded! Exactly what you see on screen!', 'success');
+                        showStatusMessage('📸 Perfect photo strip downloaded! Just the photo strip like Image 1, no buttons!', 'success');
                     }, 'image/jpeg', 0.9);
                 };
                 
@@ -1429,103 +1429,124 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             }
         }
 
-        // ===== SCREENSHOT THE ACTUAL PHOTO STRIP ON SCREEN =====
+        // ===== SCREENSHOT ONLY THE PHOTO STRIP (LEFT SIDE) =====
         async function createUltraHDPhotoStrip(photos) {
             return new Promise(async (resolve) => {
-                console.log('📸 Taking screenshot of the actual photo strip displayed on screen...');
+                console.log('📸 Looking for the PHOTO STRIP ONLY (left side of screen)...');
                 
-                // Try multiple selectors to find the photo strip element
+                // Find the photo strip container or canvas - NOT the whole page
                 let photoStripElement = null;
                 
-                // Try different possible selectors for the photo strip
-                const selectors = [
-                    '.photo-strip-canvas',
-                    '#photoStripCanvas', 
-                    'canvas[id*="strip"]',
-                    'canvas[class*="strip"]',
-                    '.strip-display canvas',
-                    '.photo-strip-container canvas',
-                    'canvas'  // Last resort - find any canvas
+                // Try to find the specific photo strip area (the left side with photos and title)
+                const possibleSelectors = [
+                    '.strip-display',           // Main photo strip display area
+                    '.photo-strip-container',   // Container for just the strip
+                    '.strip-canvas-container',  // Canvas container
+                    '.photo-strip-area',        // Photo strip area
+                    '.strip-page .left-side',   // Left side of strip page
+                    '.strip-preview',           // Strip preview area
+                    'canvas[width="400"]',      // Canvas with specific width
+                    'canvas[height="1200"]'     // Canvas with specific height
                 ];
                 
-                for (const selector of selectors) {
+                // Try each selector
+                for (const selector of possibleSelectors) {
                     photoStripElement = document.querySelector(selector);
                     if (photoStripElement) {
-                        console.log(`✅ Found photo strip element with selector: ${selector}`);
+                        console.log(`✅ Found photo strip with selector: ${selector}`);
                         break;
                     }
                 }
                 
-                // If still no element found, try to find it in the strip page
+                // If no specific container found, look for the canvas that contains the photo strip
+                if (!photoStripElement) {
+                    console.log('🔍 Looking for canvas elements...');
+                    const canvases = document.querySelectorAll('canvas');
+                    
+                    canvases.forEach((canvas, i) => {
+                        console.log(`Canvas ${i}: ${canvas.width}x${canvas.height}, ID: ${canvas.id}, Class: ${canvas.className}`);
+                        
+                        // Look for a canvas that looks like our photo strip (tall and narrow)
+                        if (canvas.height > canvas.width && canvas.width >= 300 && canvas.height >= 800) {
+                            photoStripElement = canvas;
+                            console.log(`✅ Found photo strip canvas: ${canvas.width}x${canvas.height}`);
+                        }
+                    });
+                }
+                
+                // Last resort: look in the strip page for any canvas
                 if (!photoStripElement) {
                     const stripPage = document.querySelector('.strip-page');
                     if (stripPage) {
-                        photoStripElement = stripPage.querySelector('canvas');
-                        if (photoStripElement) {
+                        const stripCanvas = stripPage.querySelector('canvas');
+                        if (stripCanvas) {
+                            photoStripElement = stripCanvas;
                             console.log('✅ Found canvas in strip page');
                         }
                     }
                 }
                 
                 if (!photoStripElement) {
-                    console.error('❌ Photo strip element not found on screen');
-                    console.log('🔄 Available elements on page:');
-                    document.querySelectorAll('canvas').forEach((canvas, i) => {
-                        console.log(`Canvas ${i}:`, canvas.id, canvas.className, canvas.width, canvas.height);
+                    console.error('❌ Could not find photo strip element');
+                    console.log('📋 Available elements:');
+                    document.querySelectorAll('*').forEach(el => {
+                        if (el.className && (el.className.includes('strip') || el.className.includes('photo'))) {
+                            console.log(`- ${el.tagName}.${el.className}`);
+                        }
                     });
                     
-                    // Fallback to manual creation
-                    console.log('🔄 Using fallback method...');
+                    // Use fallback
                     resolve(await createFallbackPhotoStrip(photos));
                     return;
                 }
                 
                 try {
-                    console.log('📸 Element found:', photoStripElement.tagName, photoStripElement.id, photoStripElement.className);
-                    console.log('📏 Element dimensions:', photoStripElement.width, photoStripElement.height, photoStripElement.offsetWidth, photoStripElement.offsetHeight);
+                    console.log('📸 Found element:', photoStripElement.tagName, photoStripElement.className);
+                    console.log('📏 Element size:', photoStripElement.offsetWidth, photoStripElement.offsetHeight);
                     
-                    // Make sure the element is visible and rendered
+                    // Wait for element to be fully rendered
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     
-                    // If it's a canvas, just convert it directly to data URL
+                    // If it's a canvas, get the data directly (BEST METHOD)
                     if (photoStripElement.tagName.toLowerCase() === 'canvas') {
-                        console.log('📸 Converting canvas directly to data URL...');
+                        console.log('📸 Converting canvas directly to image...');
+                        
                         const dataURL = photoStripElement.toDataURL('image/jpeg', 0.95);
                         
-                        if (dataURL && dataURL.length > 100) {
-                            console.log('✅ Canvas converted successfully! Size:', dataURL.length);
+                        if (dataURL && dataURL.length > 1000) {
+                            console.log('✅ Canvas screenshot successful! This should be JUST the photo strip!');
                             resolve(dataURL);
                             return;
-                        } else {
-                            console.error('❌ Canvas conversion failed or empty');
                         }
                     }
                     
-                    // Try html2canvas as backup
-                    console.log('📸 Trying html2canvas screenshot...');
+                    // If not a canvas or canvas is empty, use html2canvas on the element
+                    console.log('📸 Using html2canvas on the photo strip element...');
+                    
                     const canvas = await html2canvas(photoStripElement, {
-                        backgroundColor: '#3d2817',
-                        scale: 2,
+                        backgroundColor: '#3d2817',  // Brown background like your strip
+                        scale: 2,                    // High quality
                         useCORS: true,
                         allowTaint: true,
-                        height: photoStripElement.offsetHeight || 600,
+                        logging: false,
                         width: photoStripElement.offsetWidth || 400,
-                        scrollX: 0,
-                        scrollY: 0
+                        height: photoStripElement.offsetHeight || 1200,
+                        x: 0,
+                        y: 0
                     });
                     
                     const dataURL = canvas.toDataURL('image/jpeg', 0.95);
                     
-                    if (dataURL && dataURL.length > 100) {
-                        console.log('✅ html2canvas screenshot successful! Size:', dataURL.length);
+                    if (dataURL && dataURL.length > 1000) {
+                        console.log('✅ html2canvas screenshot successful! Got the photo strip!');
                         resolve(dataURL);
                     } else {
-                        throw new Error('Screenshot produced empty result');
+                        throw new Error('Screenshot was empty or too small');
                     }
                     
                 } catch (error) {
                     console.error('❌ Screenshot failed:', error);
-                    console.log('🔄 Falling back to manual creation...');
+                    console.log('🔄 Using fallback...');
                     resolve(await createFallbackPhotoStrip(photos));
                 }
             });
@@ -1628,28 +1649,41 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             button.textContent = '📸 Testing...';
             
             try {
-                console.log('📸 Testing screenshot function...');
-                showStatusMessage('Testing screenshot function...', 'info');
+                console.log('📸 Testing screenshot of PHOTO STRIP ONLY (left side)...');
+                showStatusMessage('Looking for photo strip element (left side only)...', 'info');
+                
+                // Log all canvases on the page first
+                console.log('🔍 All canvases on page:');
+                document.querySelectorAll('canvas').forEach((canvas, i) => {
+                    console.log(`Canvas ${i}: ${canvas.width}x${canvas.height}, ID:"${canvas.id}", Class:"${canvas.className}"`);
+                });
+                
+                // Log elements with 'strip' in class/id
+                console.log('🔍 Elements with "strip" in name:');
+                document.querySelectorAll('*').forEach(el => {
+                    if ((el.id && el.id.includes('strip')) || (el.className && el.className.includes('strip'))) {
+                        console.log(`- ${el.tagName}: ID="${el.id}", Class="${el.className}"`);
+                    }
+                });
                 
                 const screenshot = await createUltraHDPhotoStrip(capturedPhotos);
                 
                 if (!screenshot) {
-                    throw new Error('Screenshot returned null');
+                    throw new Error('Screenshot returned null - could not find photo strip element');
                 }
                 
-                if (screenshot.length < 100) {
-                    throw new Error('Screenshot data too small: ' + screenshot.length + ' characters');
+                if (screenshot.length < 1000) {
+                    throw new Error(`Screenshot data too small: ${screenshot.length} characters. Expected at least 1000 for a valid image.`);
                 }
                 
                 console.log('✅ Screenshot test successful! Length:', screenshot.length);
-                showStatusMessage(`✅ Screenshot test successful! Got ${screenshot.length} characters of image data.`, 'success');
+                console.log('📊 Screenshot starts with:', screenshot.substring(0, 50) + '...');
                 
-                // Show first 100 characters for debugging
-                console.log('📊 Screenshot preview:', screenshot.substring(0, 100) + '...');
+                showStatusMessage(`✅ Screenshot successful! Captured ${Math.round(screenshot.length/1000)}KB of image data. This should be ONLY the photo strip (left side).`, 'success');
                 
             } catch (error) {
                 console.error('❌ Screenshot test failed:', error);
-                showStatusMessage('❌ Screenshot test failed: ' + error.message, 'error');
+                showStatusMessage(`❌ Screenshot failed: ${error.message}. Check console for details.`, 'error');
             } finally {
                 button.disabled = false;
                 button.textContent = originalText;
