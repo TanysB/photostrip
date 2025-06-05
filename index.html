@@ -1434,7 +1434,7 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             }
         }
 
-        // ===== SMALL IPHONE PHOTO STRIP WITH HIGH QUALITY PHOTOS =====
+        // ===== FIXED: SMALL IPHONE PHOTO STRIP WITH MATCHING LAYOUT =====
         async function createUltraHDPhotoStrip(photos) {
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
@@ -1458,265 +1458,32 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over';
                 
-                // PHOTO SECTION - High quality photos in small strip
-                const photoSectionY = 40;
-                const photoWidth = canvas.width - 30; // Good padding
-                const photoHeight = 120; // Bigger individual photos for better quality
-                const photoSpacing = 8; // Tight spacing
-                const photoPadding = 15; // Proper padding
-                
-                // TITLE SECTION - Very small but readablex
-                const titleSectionY = canvas.height - 120; // Bottom area
-                ctx.fillStyle = '#d4b895';
-                ctx.textAlign = 'left';
-                
-                // SMALL BUT CLEAR FONTS
-                ctx.font = 'italic 40px serif'; // "Brittanys"
-                ctx.fillText("Brittanys", 15, titleSectionY + 20);
-                
-                ctx.font = 'italic 35px serif'; // "22nd"
-                ctx.fillText("22nd", 15, titleSectionY + 50);
-                
-                ctx.font = 'bold 32px serif'; // "BDAY"
-                ctx.fillText("BDAY", 15, titleSectionY + 80);
-                
-                // Small decorative stars
-                ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
-                ctx.font = '8px serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('★ ◆ ★', canvas.width / 2, canvas.height - 5);
-                
-                // Process photos with HIGH QUALITY and filters
-                let photosProcessed = 0;
-                const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
-                
-                if (sessionPhotos.length === 0) {
-                    resolve(canvas.toDataURL('image/jpeg', 0.95)); // Higher quality
-                    return;
-                }
-                
-                console.log('📱 Creating SMALL iPhone photo strip with HIGH QUALITY photos');
-                console.log('🎨 Photos and their filters:', sessionPhotos.map(p => ({ 
-                    photoNumber: p.photoNumber, 
-                    filter: p.filter || 'none'
-                })));
-                
-                // Process each photo with HIGH QUALITY filter application
-                sessionPhotos.forEach((photoData, index) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const y = photoSectionY + (index * (photoHeight + photoSpacing));
-                        
-                        // Photo border/frame - exact match to website
-                        ctx.fillStyle = '#d4b895';
-                        ctx.fillRect(photoPadding - 2, y - 2, photoWidth + 4, photoHeight + 4);
-                        
-                        // Black background for photo area
-                        ctx.fillStyle = '#000000';
-                        ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
-                        
-                        // CREATE HIGH QUALITY CANVAS FOR FILTER APPLICATION
-                        if (photoData.filter && photoData.filter !== 'none') {
-                            console.log(`🎨 Applying HIGH QUALITY ${photoData.filter} filter to photo ${index + 1}`);
-                            
-                            // Create HIGH RESOLUTION temporary canvas for better quality
-                            const tempCanvas = document.createElement('canvas');
-                            const tempCtx = tempCanvas.getContext('2d');
-                            
-                            // HIGHER RESOLUTION for better quality (2x the display size)
-                            const hiResWidth = photoWidth * 2;
-                            const hiResHeight = photoHeight * 2;
-                            tempCanvas.width = hiResWidth;
-                            tempCanvas.height = hiResHeight;
-                            
-                            // High quality settings
-                            tempCtx.imageSmoothingEnabled = true;
-                            tempCtx.imageSmoothingQuality = 'high';
-                            
-                            // Apply filter to high-res temp canvas
-                            const filterValue = getCanvasFilter(photoData.filter);
-                            tempCtx.filter = filterValue;
-                            tempCtx.drawImage(img, 0, 0, hiResWidth, hiResHeight);
-                            
-                            // Draw high-quality filtered image to main canvas (scaled down for crisp result)
-                            ctx.filter = 'none';
-                            ctx.imageSmoothingEnabled = true;
-                            ctx.imageSmoothingQuality = 'high';
-                            ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
-                            
-                            console.log(`✅ Applied HIGH QUALITY ${photoData.filter} filter successfully`);
-                        } else {
-                            // No filter - draw with high quality
-                            ctx.filter = 'none';
-                            ctx.imageSmoothingEnabled = true;
-                            ctx.imageSmoothingQuality = 'high';
-                            ctx.drawImage(img, photoPadding, y, photoWidth, photoHeight);
-                            console.log(`📸 Drew HIGH QUALITY photo ${index + 1} without filter`);
-                        }
-                        
-                        photosProcessed++;
-                        if (photosProcessed === sessionPhotos.length) {
-                            console.log('📱 SMALL iPhone photo strip with HIGH QUALITY photos created!');
-                            // Higher quality output for crisp photos
-                            resolve(canvas.toDataURL('image/jpeg', 0.95));
-                        }
-                    };
+                // ✅ FIXED: ADD BACKGROUND.PNG LIKE IN PREVIEW
+                const backgroundImg = new Image();
+                backgroundImg.onload = () => {
+                    // Add background image at bottom (matches CSS: bottom: 0, height: 1.5in)
+                    const bottomBgHeight = 90; // 1.5in equivalent in canvas
+                    ctx.globalAlpha = 0.1; // Match CSS opacity
+                    ctx.drawImage(backgroundImg, 0, canvas.height - bottomBgHeight, canvas.width, bottomBgHeight);
+                    ctx.globalAlpha = 1.0; // Reset opacity
                     
-                    img.onerror = () => {
-                        console.error('Failed to load photo', index);
-                        photosProcessed++;
-                        if (photosProcessed === sessionPhotos.length) {
-                            resolve(canvas.toDataURL('image/jpeg', 0.95));
-                        }
-                    };
-                    
-                    img.src = photoData.data;
-                });
-            });
-        }
-
-        // ===== TEST EMAIL TEMPLATE =====
-        async function testEmailTemplate() {
-            const emailInput = document.getElementById('emailInput');
-            const email = emailInput.value.trim();
-            
-            if (!email) {
-                showStatusMessage('Please enter an email address first', 'error');
-                return;
-            }
-
-            const button = event.target;
-            const originalText = button.textContent;
-            button.disabled = true;
-            button.textContent = '📧 Testing...';
-            
-            try {
-                console.log('📧 Testing EmailJS template with minimal data...');
-                showStatusMessage('Testing EmailJS template...', 'info');
-                
-                const testData = {
-                    to_email: email,
-                    message: `Hi there! This is a test email from Brittany's 22nd birthday photo booth. If you're reading this, the template is working correctly! 🎉`
+                    // Continue with the rest of the strip creation
+                    createRestOfStrip();
                 };
+                backgroundImg.onerror = () => {
+                    console.log('Background image not found, continuing without it');
+                    createRestOfStrip();
+                };
+                backgroundImg.src = 'background.png';
                 
-                console.log('Test email data:', testData);
-                
-                await emailjs.send('service_9n5lgms', 'template_js58xgg', testData);
-                
-                console.log('✅ Test email sent successfully!');
-                showStatusMessage(`✅ Test email sent to ${email}! Check your inbox to confirm the template works.`, 'success');
-                
-            } catch (error) {
-                console.error('❌ Test email failed:', error);
-                
-                let helpMessage = '❌ Test email failed: ' + error.message + '\n\n';
-                
-                if (error.message.includes('corrupted') || error.message.includes('Template')) {
-                    helpMessage += '🔧 FIX: Your EmailJS template has corrupted variables. Please recreate it from scratch using the ultra minimal template.';
-                } else if (error.message.includes('template not found')) {
-                    helpMessage += '🔧 FIX: Template "template_js58xgg" not found. Check your template ID.';
-                } else if (error.message.includes('service not found')) {
-                    helpMessage += '🔧 FIX: Service "service_9n5lgms" not found. Check your service ID.';
-                } else {
-                    helpMessage += '🔧 FIX: Check your EmailJS settings and try again.';
-                }
-                
-                showStatusMessage(helpMessage, 'error');
-            } finally {
-                button.disabled = false;
-                button.textContent = originalText;
-            }
-        }
-
-        // ===== TEST CLOUDINARY CONNECTION =====
-        async function testCloudinaryConnection() {
-            const button = event.target;
-            const originalText = button.textContent;
-            button.disabled = true;
-            button.textContent = '🔧 Testing...';
-            
-            try {
-                console.log('🔧 Testing Cloudinary configuration...');
-                console.log('Cloud Name:', CLOUDINARY_CLOUD_NAME);
-                console.log('Upload Preset:', CLOUDINARY_UPLOAD_PRESET);
-                
-                showStatusMessage('Testing Cloudinary connection...', 'info');
-                
-                // Create a small test image
-                const testCanvas = document.createElement('canvas');
-                testCanvas.width = 100;
-                testCanvas.height = 100;
-                const testCtx = testCanvas.getContext('2d');
-                
-                testCtx.fillStyle = '#3d2817';
-                testCtx.fillRect(0, 0, 100, 100);
-                testCtx.fillStyle = '#d4b895';
-                testCtx.font = '20px serif';
-                testCtx.textAlign = 'center';
-                testCtx.fillText('TEST', 50, 55);
-                
-                const testImage = testCanvas.toDataURL('image/jpeg', 0.8);
-                console.log('📸 Created test image, size:', testImage.length, 'characters');
-                
-                // Try to upload test image
-                const uploadedUrl = await uploadImageToCloudinary(testImage);
-                
-                console.log('✅ Test upload successful!');
-                showStatusMessage(`✅ Cloudinary test successful! Your setup is working perfectly. Test image uploaded: ${uploadedUrl.substring(0, 50)}...`, 'success');
-                
-            } catch (error) {
-                console.error('❌ Cloudinary test failed:', error);
-                
-                let helpMessage = '❌ Cloudinary test failed: ' + error.message + '\n\n';
-                
-                if (error.message.includes('Invalid upload preset')) {
-                    helpMessage += '🔧 FIX: Go to Cloudinary → Settings → Upload → Upload Presets → Make sure "brittany_birthday" exists and is set to "Unsigned"';
-                } else if (error.message.includes('Unauthorized')) {
-                    helpMessage += '🔧 FIX: Check that your cloud name "dou32nvcj" is correct in your Cloudinary dashboard';
-                } else if (error.message.includes('unsigned')) {
-                    helpMessage += '🔧 FIX: Your upload preset must be set to "Unsigned" mode. Edit the preset in Cloudinary settings.';
-                } else if (error.message.includes('Network')) {
-                    helpMessage += '🔧 FIX: Check your internet connection and try again';
-                } else {
-                    helpMessage += '🔧 FIX: Please check your Cloudinary settings and try again';
-                }
-                
-                showStatusMessage(helpMessage, 'error');
-            } finally {
-                button.disabled = false;
-                button.textContent = originalText;
-            }
-        }
-
-        function restartSession() {
-            document.getElementById('stripPage').classList.remove('active');
-            document.getElementById('startPage').classList.add('active');
-            
-            sessionId = Date.now();
-            capturedPhotos = [];
-            photoCount = 0;
-            currentFilter = 'none';
-            document.getElementById('emailInput').value = '';
-            document.getElementById('statusMessage').style.display = 'none';
-            
-            for (let i = 1; i <= 3; i++) {
-                document.getElementById(`stripPhoto${i}`).innerHTML = '';
-            }
-            
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector('.filter-btn').classList.add('active');
-        }
-
-        // Make functions globally available
-        window.testEmailTemplate = testEmailTemplate;
-        window.testCloudinaryConnection = testCloudinaryConnection;
-        window.uploadToCloudinaryAndEmail = uploadToCloudinaryAndEmail;
-        window.sendTinyPreview = sendTinyPreview;
-        window.downloadUltraHDPhotoStrip = downloadUltraHDPhotoStrip;
-        window.startPhotoSession = startPhotoSession;
-        window.setFilter = setFilter;
-        window.startCountdown = startCountdown;
-        window.restartSession = restartSession;
-    </script>
-</body>
-</html>
+                function createRestOfStrip() {
+                    // PHOTO SECTION - High quality photos in small strip
+                    const photoSectionY = 40;
+                    const photoWidth = canvas.width - 30; // Good padding
+                    const photoHeight = 120; // Bigger individual photos for better quality
+                    const photoSpacing = 8; // Tight spacing
+                    const photoPadding = 15; // Proper padding
+                    
+                    // TITLE SECTION - Very small but readable, EXACT FONT MATCH
+                    const titleSectionY = canvas.height - 120; // Bottom area
+                    ctx.fillStyle = '#d4b895';
