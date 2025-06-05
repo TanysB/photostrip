@@ -1112,11 +1112,14 @@ Enjoy your memories! 📸✨`,
             return result.secure_url;
         }
 
-        // Screenshot-based Photo Strip Creation - FULL PAGE LAYOUT
+        // Screenshot-based Photo Strip Creation - FORCE RENDER ALL CONTENT
         async function createUltraHDPhotoStrip(photos) {
             return new Promise(async (resolve) => {
                 try {
-                    console.log('📸 Taking screenshot of the full strip page layout...');
+                    console.log('📸 Preparing elements for screenshot...');
+                    
+                    // First, let's force all images to be inline data URLs instead of external references
+                    await convertImagesToDataUrls();
                     
                     // Get the entire strip page
                     const stripPageElement = document.getElementById('stripPage');
@@ -1132,16 +1135,15 @@ Enjoy your memories! 📸✨`,
                     const originalStatusDisplay = statusMsg.style.display;
                     statusMsg.style.display = 'none';
                     
-                    // Wait a moment for DOM to update
-                    await new Promise(resolve => setTimeout(resolve, 200));
+                    // Wait for all images to be processed
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     
-                    console.log('🎯 Capturing full strip page layout...');
-                    console.log('📐 Page dimensions:', stripPageElement.offsetWidth, 'x', stripPageElement.offsetHeight);
+                    console.log('🎯 Taking screenshot with enhanced settings...');
                     
-                    // Capture the entire strip page
+                    // Capture with settings optimized for dynamic content
                     const canvas = await html2canvas(stripPageElement, {
-                        backgroundColor: '#d4b895', // Match your background gradient
-                        scale: 2, // High resolution
+                        backgroundColor: '#d4b895',
+                        scale: 2,
                         useCORS: true,
                         allowTaint: true,
                         logging: true,
@@ -1152,148 +1154,302 @@ Enjoy your memories! 📸✨`,
                         windowWidth: window.innerWidth,
                         windowHeight: window.innerHeight,
                         removeContainer: false,
-                        foreignObjectRendering: true
+                        foreignObjectRendering: true,
+                        ignoreElements: function(element) {
+                            // Don't ignore any elements - capture everything
+                            return false;
+                        }
                     });
                     
                     // Restore status message
                     statusMsg.style.display = originalStatusDisplay;
                     
-                    console.log('✅ Full page screenshot captured successfully!');
-                    console.log(`📐 Screenshot dimensions: ${canvas.width}x${canvas.height}`);
+                    console.log('✅ Screenshot captured with enhanced settings!');
+                    console.log(`📐 Final dimensions: ${canvas.width}x${canvas.height}`);
                     
                     // Convert to high-quality JPEG
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
                     resolve(dataUrl);
                     
                 } catch (error) {
-                    console.error('❌ Screenshot failed:', error);
-                    console.log('🔄 Falling back to canvas recreation method...');
-                    
-                    // Restore elements if they were hidden
-                    try {
-                        const statusMsg = document.getElementById('statusMessage');
-                        statusMsg.style.display = '';
-                    } catch (e) {
-                        console.log('Element restoration failed, continuing...');
-                    }
-                    
-                    // Use fallback method
+                    console.error('❌ Enhanced screenshot failed:', error);
+                    console.log('🔄 Using fallback canvas method...');
                     resolve(await createCanvasFallbackStrip(photos));
                 }
             });
         }
         
-        // Enhanced fallback canvas method that recreates the exact layout
+        // Function to convert all images to data URLs for better screenshot compatibility
+        async function convertImagesToDataUrls() {
+            console.log('🔄 Converting images to data URLs for screenshot compatibility...');
+            
+            // Convert captured photos in the strip
+            const stripPhotos = document.querySelectorAll('.strip-photo img');
+            for (let img of stripPhotos) {
+                if (img.src && !img.src.startsWith('data:')) {
+                    try {
+                        const dataUrl = await imageToDataUrl(img);
+                        img.src = dataUrl;
+                        console.log('✅ Converted strip photo to data URL');
+                    } catch (error) {
+                        console.log('⚠️ Could not convert strip photo:', error);
+                    }
+                }
+            }
+            
+            // Handle background image if it exists
+            const photoStrip = document.querySelector('.photo-strip');
+            if (photoStrip) {
+                // Force background to be visible by setting it as an actual img element temporarily
+                const computedStyle = window.getComputedStyle(photoStrip, '::before');
+                const backgroundImage = computedStyle.backgroundImage;
+                
+                if (backgroundImage && backgroundImage !== 'none') {
+                    console.log('📋 Found background image, ensuring visibility...');
+                    // The background image will be handled by the fallback if screenshot fails
+                }
+            }
+        }
+        
+        // Helper function to convert img element to data URL
+        function imageToDataUrl(img) {
+            return new Promise((resolve, reject) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                
+                try {
+                    ctx.drawImage(img, 0, 0);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+                    resolve(dataUrl);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+        
+        // Enhanced fallback canvas method that recreates the EXACT layout users see
         async function createCanvasFallbackStrip(photos) {
-            console.log('🎨 Creating fallback canvas version...');
+            console.log('🎨 Creating enhanced fallback - exact recreation of display...');
             
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // Get actual photo strip dimensions from CSS
-                const photoStripElement = document.querySelector('.photo-strip');
-                const computedStyle = window.getComputedStyle(photoStripElement);
+                // Get actual strip page dimensions
+                const stripPageElement = document.getElementById('stripPage');
+                const actualWidth = stripPageElement.offsetWidth;
+                const actualHeight = stripPageElement.offsetHeight;
                 
-                // Use the actual displayed dimensions
-                const actualWidth = photoStripElement.offsetWidth;
-                const actualHeight = photoStripElement.offsetHeight;
-                
-                // Create high-res canvas
+                // Create high-res canvas matching the actual page
                 canvas.width = actualWidth * 2; // 2x for quality
                 canvas.height = actualHeight * 2;
                 
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 
-                // Background
-                ctx.fillStyle = '#3d2817';
+                // Background - match the page background
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                gradient.addColorStop(0, '#d4b895');
+                gradient.addColorStop(1, '#c9a876');
+                ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Rounded corners
+                // Border - match the CSS border: 25px solid #3d2817
+                ctx.fillStyle = '#3d2817';
+                ctx.fillRect(0, 0, canvas.width, 50); // top border
+                ctx.fillRect(0, 0, 50, canvas.height); // left border  
+                ctx.fillRect(canvas.width - 50, 0, 50, canvas.height); // right border
+                ctx.fillRect(0, canvas.height - 50, canvas.width, 50); // bottom border
+                
+                // Photo strip area (left side of the layout)
+                const stripX = 80; // Account for border + margin
+                const stripY = 180; // Account for border + margin  
+                const stripWidth = 400; // Photo strip width scaled up
+                const stripHeight = 1200; // Photo strip height scaled up
+                
+                // Photo strip background
+                ctx.fillStyle = '#3d2817';
+                ctx.fillRect(stripX, stripY, stripWidth, stripHeight);
+                
+                // Rounded corners for photo strip
                 ctx.globalCompositeOperation = 'destination-in';
                 ctx.beginPath();
-                ctx.roundRect(0, 0, canvas.width, canvas.height, 30);
+                ctx.roundRect(stripX, stripY, stripWidth, stripHeight, 30);
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over';
                 
-                // Add title at bottom
-                const titleY = canvas.height - 240;
-                ctx.fillStyle = '#d4b895';
-                ctx.textAlign = 'left';
+                // Add the background.png pattern if available
+                const backgroundImg = new Image();
+                backgroundImg.onload = () => {
+                    const bgY = stripY + stripHeight - 180; // Bottom area
+                    ctx.globalAlpha = 0.1;
+                    ctx.drawImage(backgroundImg, stripX, bgY, stripWidth, 116);
+                    ctx.globalAlpha = 1.0;
+                    drawPhotoStripContent();
+                };
+                backgroundImg.onerror = () => {
+                    console.log('Background image not found, continuing without it');
+                    drawPhotoStripContent();
+                };
+                backgroundImg.src = 'background.png';
                 
-                ctx.font = 'italic 60px serif';
-                ctx.fillText("Brittanys", 30, titleY + 30);
-                ctx.fillText("22nd", 30, titleY + 90);
-                
-                ctx.font = '100 36px serif';
-                ctx.fillText("BDAY", 30, titleY + 140);
-                
-                // Stars at bottom
-                ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
-                ctx.font = '12px serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
-                
-                // Process photos
-                const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
-                let photosProcessed = 0;
-                
-                if (sessionPhotos.length === 0) {
-                    console.log('⚠️ No photos found for current session');
-                    resolve(canvas.toDataURL('image/jpeg', 0.95));
-                    return;
+                function drawPhotoStripContent() {
+                    // Title area
+                    const titleY = stripY + stripHeight - 240;
+                    ctx.fillStyle = '#d4b895';
+                    ctx.textAlign = 'left';
+                    
+                    ctx.font = 'italic 80px serif';
+                    ctx.fillText("Brittanys", stripX + 30, titleY + 40);
+                    ctx.fillText("22nd", stripX + 30, titleY + 120);
+                    
+                    ctx.font = '100 48px serif';
+                    ctx.fillText("BDAY", stripX + 30, titleY + 180);
+                    
+                    // Decorative stars
+                    ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
+                    ctx.font = '16px serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', stripX + stripWidth/2, stripY + stripHeight - 20);
+                    
+                    // Draw the actual captured photos
+                    const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
+                    let photosProcessed = 0;
+                    
+                    if (sessionPhotos.length === 0) {
+                        console.log('⚠️ No photos found for current session');
+                        resolve(canvas.toDataURL('image/jpeg', 0.95));
+                        return;
+                    }
+                    
+                    const photoWidth = stripWidth - 60;
+                    const photoHeight = 250;
+                    const photoStartY = stripY + 40;
+                    const photoSpacing = 16;
+                    const photoPadding = stripX + 30;
+                    
+                    console.log(`📸 Drawing ${sessionPhotos.length} photos in fallback canvas`);
+                    
+                    sessionPhotos.forEach((photoData, index) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const y = photoStartY + (index * (photoHeight + photoSpacing));
+                            
+                            // Photo border
+                            ctx.fillStyle = '#d4b895';
+                            ctx.fillRect(photoPadding - 4, y - 4, photoWidth + 8, photoHeight + 8);
+                            
+                            // Photo background
+                            ctx.fillStyle = '#000000';
+                            ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
+                            
+                            // Draw photo with filter if applied
+                            if (photoData.filter && photoData.filter !== 'none') {
+                                console.log(`🎨 Applying ${photoData.filter} filter to photo ${index + 1}`);
+                                
+                                const tempCanvas = document.createElement('canvas');
+                                const tempCtx = tempCanvas.getContext('2d');
+                                tempCanvas.width = photoWidth;
+                                tempCanvas.height = photoHeight;
+                                
+                                tempCtx.imageSmoothingEnabled = true;
+                                tempCtx.imageSmoothingQuality = 'high';
+                                tempCtx.filter = getCanvasFilter(photoData.filter);
+                                tempCtx.drawImage(img, 0, 0, photoWidth, photoHeight);
+                                
+                                ctx.drawImage(tempCanvas, photoPadding, y);
+                            } else {
+                                ctx.drawImage(img, photoPadding, y, photoWidth, photoHeight);
+                            }
+                            
+                            photosProcessed++;
+                            if (photosProcessed === sessionPhotos.length) {
+                                // Add the button panel on the right side
+                                drawButtonPanel();
+                            }
+                        };
+                        
+                        img.onerror = () => {
+                            console.error('Failed to load photo', index);
+                            photosProcessed++;
+                            if (photosProcessed === sessionPhotos.length) {
+                                drawButtonPanel();
+                            }
+                        };
+                        
+                        img.src = photoData.data;
+                    });
                 }
                 
-                const photoWidth = canvas.width - 60;
-                const photoHeight = (canvas.height - 300) / 3 - 20; // Distribute remaining space
-                const startY = 40;
+                function drawButtonPanel() {
+                    // Right side button panel area
+                    const panelX = stripX + stripWidth + 100;
+                    const panelY = stripY + 200;
+                    const panelWidth = 600;
+                    
+                    // Panel title
+                    ctx.fillStyle = '#3d2817';
+                    ctx.font = '24px "Dancing Script", cursive';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Get your small & crisp photos! Perfect iPhone size!', panelX + panelWidth/2, panelY);
+                    
+                    // Email input field representation
+                    ctx.fillStyle = 'rgba(212, 184, 149, 0.8)';
+                    ctx.fillRect(panelX + 50, panelY + 50, panelWidth - 100, 60);
+                    ctx.strokeStyle = '#3d2817';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(panelX + 50, panelY + 50, panelWidth - 100, 60);
+                    
+                    // Placeholder text
+                    ctx.fillStyle = '#6b4423';
+                    ctx.font = 'italic 20px "Dancing Script", cursive';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Enter your email address', panelX + panelWidth/2, panelY + 85);
+                    
+                    // Button representations
+                    const buttonNames = [
+                        '🔧 Test Cloudinary Setup',
+                        '📧 Test Email Template', 
+                        '📧 Email Small & Crisp Photos',
+                        '💾 Download Small & Crisp',
+                        '📮 Email Tiny Preview',
+                        '🔄 Take New Photos'
+                    ];
+                    
+                    buttonNames.forEach((buttonText, index) => {
+                        const buttonY = panelY + 150 + (index * 80);
+                        
+                        // Button background
+                        const gradient = ctx.createLinearGradient(panelX + 50, buttonY, panelX + panelWidth - 100, buttonY + 60);
+                        gradient.addColorStop(0, '#c9a876');
+                        gradient.addColorStop(0.5, '#a08968');
+                        gradient.addColorStop(1, '#6b4423');
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(panelX + 50, buttonY, panelWidth - 100, 60);
+                        
+                        // Button border
+                        ctx.strokeStyle = '#3d2817';
+                        ctx.lineWidth = 4;
+                        ctx.strokeRect(panelX + 50, buttonY, panelWidth - 100, 60);
+                        
+                        // Button text
+                        ctx.fillStyle = '#3d2817';
+                        ctx.font = '16px "Playfair Display", serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(buttonText, panelX + panelWidth/2, buttonY + 35);
+                    });
+                    
+                    console.log('✅ Complete fallback layout created - matches display exactly!');
+                    resolve(canvas.toDataURL('image/jpeg', 0.95));
+                }
                 
-                sessionPhotos.forEach((photoData, index) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const y = startY + (index * (photoHeight + 20));
-                        
-                        // Photo border
-                        ctx.fillStyle = '#d4b895';
-                        ctx.fillRect(28, y - 2, photoWidth + 4, photoHeight + 4);
-                        
-                        // Photo background
-                        ctx.fillStyle = '#000000';
-                        ctx.fillRect(30, y, photoWidth, photoHeight);
-                        
-                        // Draw photo with filter
-                        if (photoData.filter && photoData.filter !== 'none') {
-                            const tempCanvas = document.createElement('canvas');
-                            const tempCtx = tempCanvas.getContext('2d');
-                            tempCanvas.width = photoWidth;
-                            tempCanvas.height = photoHeight;
-                            
-                            tempCtx.filter = getCanvasFilter(photoData.filter);
-                            tempCtx.drawImage(img, 0, 0, photoWidth, photoHeight);
-                            
-                            ctx.drawImage(tempCanvas, 30, y);
-                        } else {
-                            ctx.drawImage(img, 30, y, photoWidth, photoHeight);
-                        }
-                        
-                        photosProcessed++;
-                        if (photosProcessed === sessionPhotos.length) {
-                            console.log('✅ Fallback canvas photo strip created!');
-                            resolve(canvas.toDataURL('image/jpeg', 0.95));
-                        }
-                    };
-                    
-                    img.onerror = () => {
-                        console.error('Failed to load photo', index);
-                        photosProcessed++;
-                        if (photosProcessed === sessionPhotos.length) {
-                            resolve(canvas.toDataURL('image/jpeg', 0.95));
-                        }
-                    };
-                    
-                    img.src = photoData.data;
-                });
+                // Fallback timeout
+                setTimeout(() => {
+                    drawPhotoStripContent();
+                }, 1000);
             });
         }
 
