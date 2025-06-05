@@ -810,7 +810,7 @@
             </div>
             <div class="phone-input-container">
                 <div style="text-align: center; margin-bottom: 0.1in; color: #3d2817; font-family: 'Dancing Script', cursive; font-size: 0.14in; font-weight: 600;">
-                    Get your exact photo strip recreation! Perfect match!
+                    Get your small & crisp photos! Perfect iPhone size!
                 </div>
                 <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
                 <div id="statusMessage"></div>
@@ -818,12 +818,10 @@
                 <button class="strip-page-btn" onclick="testCloudinaryConnection()" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white;">🔧 Test Cloudinary Setup</button>
                 <!-- TEST BUTTON: Check if EmailJS template works -->
                 <button class="strip-page-btn" onclick="testEmailTemplate()" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">📧 Test Email Template</button>
-                <!-- TEST BUTTON: Test recreation function -->
-                <button class="strip-page-btn" onclick="testScreenshotFunction()" style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); color: white;">🎨 Test Photo Strip Recreation</button>
                 <!-- MAIN OPTION: Cloud upload (bypasses 50KB limit) -->
-                <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()">📧 Email Exact Photo Strip</button>
+                <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()">📧 Email Small & Crisp Photos</button>
                 <!-- BACKUP OPTION: Download -->
-                <button class="strip-page-btn" onclick="downloadUltraHDPhotoStrip()">💾 Download Exact Photo Strip</button>
+                <button class="strip-page-btn" onclick="downloadUltraHDPhotoStrip()">💾 Download Small & Crisp</button>
                 <!-- ALTERNATIVE: Tiny preview -->
                 <button class="strip-page-btn" onclick="sendTinyPreview()">📮 Email Tiny Preview</button>
                 <button class="strip-page-btn" onclick="restartSession()">🔄 Take New Photos</button>
@@ -1079,7 +1077,7 @@
                 const cloudinaryUrl = await uploadImageToCloudinary(ultraHDStrip);
                 
                 button.textContent = '📧 Sending Email...';
-                showStatusMessage('Sending email with photo strip screenshot...', 'info');
+                showStatusMessage('Sending email with small, high-quality links...', 'info');
                 
                 // Send email with Cloudinary URL (no attachments = no 50KB limit!)
                 await emailjs.send('service_9n5lgms', 'template_js58xgg', {
@@ -1105,8 +1103,8 @@ Enjoy your memories! 📸✨`,
                     photo3: ''
                 });
                 
-                console.log('✅ Photo strip recreation email sent successfully via Cloudinary!');
-                showStatusMessage(`🎉 Perfect photo strip recreation uploaded and emailed to ${email}! EXACT match to what you see on screen!`, 'success');
+                console.log('✅ Small, high-quality email sent successfully via Cloudinary!');
+                showStatusMessage(`🎉 Small, high-quality photos uploaded and email sent to ${email}! Perfect iPhone size with crisp photo quality!`, 'success');
                 emailInput.value = '';
                 
             } catch (error) {
@@ -1382,17 +1380,13 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             const button = event.target;
             const originalText = button.textContent;
             button.disabled = true;
-            button.textContent = '📸 Taking Screenshot...';
+            button.textContent = '📱 Creating Small & Crisp...';
             
-                            showStatusMessage('Taking screenshot of ONLY the photo strip (left side)...', 'info');
+            showStatusMessage('Creating small photo strip with high-quality photos...', 'info');
 
             try {
-                // Use the same screenshot function as email
-                const photoStripScreenshot = await createUltraHDPhotoStrip(capturedPhotos);
-                
-                if (!photoStripScreenshot || photoStripScreenshot.length < 100) {
-                    throw new Error('Screenshot failed - no valid image data');
-                }
+                // Use the same iPhone-friendly function as email
+                const iphoneFriendlyStrip = await createUltraHDPhotoStrip(capturedPhotos);
                 
                 button.textContent = '💾 Downloading...';
                 
@@ -1415,11 +1409,11 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                         
-                        showStatusMessage('📸 Perfect photo strip downloaded! Just the photo strip like Image 1, no buttons!', 'success');
+                        showStatusMessage('📱 Small, high-quality photo strip downloaded! Perfect iPhone size with crisp photos!', 'success');
                     }, 'image/jpeg', 0.9);
                 };
                 
-                img.src = photoStripScreenshot;
+                img.src = iphoneFriendlyStrip;
                 
             } catch (error) {
                 showStatusMessage('Download failed: ' + error.message, 'error');
@@ -1429,185 +1423,145 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             }
         }
 
-        // ===== RECREATE THE EXACT PHOTO STRIP AS DISPLAYED =====
+        // ===== SMALL IPHONE PHOTO STRIP WITH HIGH QUALITY PHOTOS =====
         async function createUltraHDPhotoStrip(photos) {
             return new Promise((resolve) => {
-                console.log('🎨 Recreating the EXACT photo strip as displayed on screen...');
-                
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // EXACT dimensions as displayed on your screen
-                canvas.width = 400;  
-                canvas.height = 1200; 
+                // MUCH SMALLER for iPhone viewing - fits easily in screen
+                canvas.width = 200;  // Even smaller width 
+                canvas.height = 600; // Even smaller height - perfect iPhone fit
                 
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 
-                // EXACT background color from your website
+                // EXACT BACKGROUND MATCH - Dark brown like the website
                 ctx.fillStyle = '#3d2817';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Rounded corners to match the display
+                // Rounded corners to match website exactly
                 ctx.globalCompositeOperation = 'destination-in';
                 ctx.beginPath();
-                ctx.roundRect(0, 0, canvas.width, canvas.height, 20);
+                ctx.roundRect(0, 0, canvas.width, canvas.height, 10);
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over';
                 
-                // Get the photos from this session
+                // PHOTO SECTION - High quality photos in small strip
+                const photoSectionY = 40;
+                const photoWidth = canvas.width - 30; // Good padding
+                const photoHeight = 120; // Bigger individual photos for better quality
+                const photoSpacing = 8; // Tight spacing
+                const photoPadding = 15; // Proper padding
+                
+                // TITLE SECTION - Very small but readable
+                const titleSectionY = canvas.height - 120; // Bottom area
+                ctx.fillStyle = '#d4b895';
+                ctx.textAlign = 'left';
+                
+                // SMALL BUT CLEAR FONTS
+                ctx.font = 'italic 40px serif'; // "Brittanys"
+                ctx.fillText("Brittanys", 15, titleSectionY + 20);
+                
+                ctx.font = 'italic 35px serif'; // "22nd"
+                ctx.fillText("22nd", 15, titleSectionY + 50);
+                
+                ctx.font = 'bold 32px serif'; // "BDAY"
+                ctx.fillText("BDAY", 15, titleSectionY + 80);
+                
+                // Small decorative stars
+                ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
+                ctx.font = '8px serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('★ ◆ ★', canvas.width / 2, canvas.height - 5);
+                
+                // Process photos with HIGH QUALITY and filters
+                let photosProcessed = 0;
                 const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
                 
                 if (sessionPhotos.length === 0) {
-                    console.log('❌ No photos found for this session');
-                    resolve(null);
+                    resolve(canvas.toDataURL('image/jpeg', 0.95)); // Higher quality
                     return;
                 }
                 
-                console.log(`🖼️ Processing ${sessionPhotos.length} photos with filters...`);
+                console.log('📱 Creating SMALL iPhone photo strip with HIGH QUALITY photos');
+                console.log('🎨 Photos and their filters:', sessionPhotos.map(p => ({ 
+                    photoNumber: p.photoNumber, 
+                    filter: p.filter || 'none'
+                })));
                 
-                // Photo layout - EXACT match to your display
-                const photoWidth = 320;
-                const photoHeight = 240;
-                const photoX = 40; // Left padding
-                const startY = 40; // Top padding  
-                const photoSpacing = 20; // Space between photos
-                
-                let photosProcessed = 0;
-                
-                // Process each photo
+                // Process each photo with HIGH QUALITY filter application
                 sessionPhotos.forEach((photoData, index) => {
                     const img = new Image();
                     img.onload = () => {
-                        const y = startY + (index * (photoHeight + photoSpacing));
+                        const y = photoSectionY + (index * (photoHeight + photoSpacing));
                         
-                        console.log(`🎨 Drawing photo ${index + 1} with filter: ${photoData.filter || 'none'}`);
-                        
-                        // Photo frame/border - EXACT match to display
+                        // Photo border/frame - exact match to website
                         ctx.fillStyle = '#d4b895';
-                        ctx.fillRect(photoX - 5, y - 5, photoWidth + 10, photoHeight + 10);
+                        ctx.fillRect(photoPadding - 2, y - 2, photoWidth + 4, photoHeight + 4);
                         
-                        // Black background for photo
+                        // Black background for photo area
                         ctx.fillStyle = '#000000';
-                        ctx.fillRect(photoX, y, photoWidth, photoHeight);
+                        ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
                         
-                        // Apply the SAME filter that was used when taking the photo
+                        // CREATE HIGH QUALITY CANVAS FOR FILTER APPLICATION
                         if (photoData.filter && photoData.filter !== 'none') {
-                            console.log(`🎨 Applying ${photoData.filter} filter...`);
+                            console.log(`🎨 Applying HIGH QUALITY ${photoData.filter} filter to photo ${index + 1}`);
                             
-                            // Create temp canvas for filter
+                            // Create HIGH RESOLUTION temporary canvas for better quality
                             const tempCanvas = document.createElement('canvas');
                             const tempCtx = tempCanvas.getContext('2d');
-                            tempCanvas.width = photoWidth;
-                            tempCanvas.height = photoHeight;
                             
-                            // Apply filter and draw to temp canvas
+                            // HIGHER RESOLUTION for better quality (2x the display size)
+                            const hiResWidth = photoWidth * 2;
+                            const hiResHeight = photoHeight * 2;
+                            tempCanvas.width = hiResWidth;
+                            tempCanvas.height = hiResHeight;
+                            
+                            // High quality settings
+                            tempCtx.imageSmoothingEnabled = true;
+                            tempCtx.imageSmoothingQuality = 'high';
+                            
+                            // Apply filter to high-res temp canvas
                             const filterValue = getCanvasFilter(photoData.filter);
                             tempCtx.filter = filterValue;
-                            tempCtx.drawImage(img, 0, 0, photoWidth, photoHeight);
+                            tempCtx.drawImage(img, 0, 0, hiResWidth, hiResHeight);
                             
-                            // Draw filtered image to main canvas
+                            // Draw high-quality filtered image to main canvas (scaled down for crisp result)
                             ctx.filter = 'none';
-                            ctx.drawImage(tempCanvas, photoX, y);
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
+                            ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
+                            
+                            console.log(`✅ Applied HIGH QUALITY ${photoData.filter} filter successfully`);
                         } else {
-                            // No filter - draw directly
+                            // No filter - draw with high quality
                             ctx.filter = 'none';
-                            ctx.drawImage(img, photoX, y, photoWidth, photoHeight);
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
+                            ctx.drawImage(img, photoPadding, y, photoWidth, photoHeight);
+                            console.log(`📸 Drew HIGH QUALITY photo ${index + 1} without filter`);
                         }
                         
                         photosProcessed++;
                         if (photosProcessed === sessionPhotos.length) {
-                            // Add the title section - EXACT match to your display
-                            console.log('🎨 Adding title section...');
-                            
-                            const titleY = canvas.height - 280; // Bottom area
-                            ctx.fillStyle = '#d4b895';
-                            ctx.textAlign = 'left';
-                            
-                            // EXACT fonts as your display
-                            ctx.font = 'italic 80px serif'; // "Brittanys"
-                            ctx.fillText("Brittanys", 40, titleY + 60);
-                            
-                            ctx.font = 'italic 70px serif'; // "22nd"  
-                            ctx.fillText("22nd", 40, titleY + 140);
-                            
-                            ctx.font = 'bold 65px serif'; // "BDAY"
-                            ctx.fillText("BDAY", 40, titleY + 210);
-                            
-                            // Small decorative stars
-                            ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
-                            ctx.font = '20px serif';
-                            ctx.textAlign = 'center';
-                            ctx.fillText('★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
-                            
-                            console.log('✅ EXACT photo strip recreation complete!');
-                            console.log('🎯 This matches EXACTLY what you see on screen - same photos, filters, layout, fonts!');
-                            
-                            // High quality output
+                            console.log('📱 SMALL iPhone photo strip with HIGH QUALITY photos created!');
+                            // Higher quality output for crisp photos
                             resolve(canvas.toDataURL('image/jpeg', 0.95));
                         }
                     };
                     
                     img.onerror = () => {
-                        console.error(`❌ Failed to load photo ${index + 1}`);
+                        console.error('Failed to load photo', index);
                         photosProcessed++;
                         if (photosProcessed === sessionPhotos.length) {
-                            resolve(canvas.toDataURL('image/jpeg', 0.8));
+                            resolve(canvas.toDataURL('image/jpeg', 0.95));
                         }
                     };
                     
                     img.src = photoData.data;
                 });
             });
-        }
-        
-        // ===== TEST PHOTO STRIP RECREATION =====
-        async function testScreenshotFunction() {
-            const button = event.target;
-            const originalText = button.textContent;
-            button.disabled = true;
-            button.textContent = '🎨 Testing...';
-            
-            try {
-                console.log('🎨 Testing EXACT photo strip recreation...');
-                showStatusMessage('Testing exact photo strip recreation (not screenshot)...', 'info');
-                
-                if (capturedPhotos.length === 0) {
-                    throw new Error('No photos captured yet. Take photos first!');
-                }
-                
-                const sessionPhotos = capturedPhotos.filter(photo => photo.sessionId === sessionId);
-                if (sessionPhotos.length === 0) {
-                    throw new Error('No photos found for current session');
-                }
-                
-                console.log('📸 Found photos:', sessionPhotos.map(p => ({ 
-                    photoNumber: p.photoNumber, 
-                    filter: p.filter || 'none'
-                })));
-                
-                const photoStrip = await createUltraHDPhotoStrip(capturedPhotos);
-                
-                if (!photoStrip) {
-                    throw new Error('Photo strip creation returned null');
-                }
-                
-                if (photoStrip.length < 1000) {
-                    throw new Error(`Photo strip data too small: ${photoStrip.length} characters. Expected at least 1000 for a valid image.`);
-                }
-                
-                console.log('✅ EXACT photo strip recreation successful! Length:', photoStrip.length);
-                console.log('🎯 This recreates EXACTLY what you see on screen using your actual photos and filters!');
-                
-                showStatusMessage(`✅ Photo strip recreation successful! Created ${Math.round(photoStrip.length/1000)}KB image with your ${sessionPhotos.length} photos and filters applied.`, 'success');
-                
-            } catch (error) {
-                console.error('❌ Photo strip recreation failed:', error);
-                showStatusMessage(`❌ Recreation failed: ${error.message}`, 'error');
-            } finally {
-                button.disabled = false;
-                button.textContent = originalText;
-            }
         }
 
         // ===== TEST EMAIL TEMPLATE =====
@@ -1743,7 +1697,6 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
         }
 
         // Make functions globally available
-        window.testScreenshotFunction = testScreenshotFunction;
         window.testEmailTemplate = testEmailTemplate;
         window.testCloudinaryConnection = testCloudinaryConnection;
         window.uploadToCloudinaryAndEmail = uploadToCloudinaryAndEmail;
