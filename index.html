@@ -816,6 +816,8 @@
                 <div id="statusMessage"></div>
                 <!-- TEST BUTTON: Check if Cloudinary is working -->
                 <button class="strip-page-btn" onclick="testCloudinaryConnection()" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white;">🔧 Test Cloudinary Setup</button>
+                <!-- TEST BUTTON: Check if EmailJS template works -->
+                <button class="strip-page-btn" onclick="testEmailTemplate()" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">📧 Test Email Template</button>
                 <!-- MAIN OPTION: Cloud upload (bypasses 50KB limit) -->
                 <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()">📧 Email Ultra HD Links</button>
                 <!-- BACKUP OPTION: Download -->
@@ -1502,6 +1504,59 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             });
         }
 
+        // ===== TEST EMAIL TEMPLATE =====
+        async function testEmailTemplate() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showStatusMessage('Please enter an email address first', 'error');
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = '📧 Testing...';
+            
+            try {
+                console.log('📧 Testing EmailJS template with minimal data...');
+                showStatusMessage('Testing EmailJS template...', 'info');
+                
+                const testData = {
+                    to_email: email,
+                    message: `Hi there! This is a test email from Brittany's 22nd birthday photo booth. If you're reading this, the template is working correctly! 🎉`
+                };
+                
+                console.log('Test email data:', testData);
+                
+                await emailjs.send('service_9n5lgms', 'template_js58xgg', testData);
+                
+                console.log('✅ Test email sent successfully!');
+                showStatusMessage(`✅ Test email sent to ${email}! Check your inbox to confirm the template works.`, 'success');
+                
+            } catch (error) {
+                console.error('❌ Test email failed:', error);
+                
+                let helpMessage = '❌ Test email failed: ' + error.message + '\n\n';
+                
+                if (error.message.includes('corrupted') || error.message.includes('Template')) {
+                    helpMessage += '🔧 FIX: Your EmailJS template has corrupted variables. Please recreate it from scratch using the ultra minimal template.';
+                } else if (error.message.includes('template not found')) {
+                    helpMessage += '🔧 FIX: Template "template_js58xgg" not found. Check your template ID.';
+                } else if (error.message.includes('service not found')) {
+                    helpMessage += '🔧 FIX: Service "service_9n5lgms" not found. Check your service ID.';
+                } else {
+                    helpMessage += '🔧 FIX: Check your EmailJS settings and try again.';
+                }
+                
+                showStatusMessage(helpMessage, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
         // ===== TEST CLOUDINARY CONNECTION =====
         async function testCloudinaryConnection() {
             const button = event.target;
@@ -1582,6 +1637,7 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
         }
 
         // Make functions globally available
+        window.testEmailTemplate = testEmailTemplate;
         window.testCloudinaryConnection = testCloudinaryConnection;
         window.uploadToCloudinaryAndEmail = uploadToCloudinaryAndEmail;
         window.sendTinyPreview = sendTinyPreview;
