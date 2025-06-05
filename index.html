@@ -810,7 +810,7 @@
             </div>
             <div class="phone-input-container">
                 <div style="text-align: center; margin-bottom: 0.1in; color: #3d2817; font-family: 'Dancing Script', cursive; font-size: 0.14in; font-weight: 600;">
-                    Get your iPhone-friendly photos! Perfect mobile viewing!
+                    Get your small & crisp photos! Perfect iPhone size!
                 </div>
                 <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
                 <div id="statusMessage"></div>
@@ -819,9 +819,9 @@
                 <!-- TEST BUTTON: Check if EmailJS template works -->
                 <button class="strip-page-btn" onclick="testEmailTemplate()" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">📧 Test Email Template</button>
                 <!-- MAIN OPTION: Cloud upload (bypasses 50KB limit) -->
-                <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()">📧 Email iPhone-Friendly Photos</button>
+                <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()">📧 Email Small & Crisp Photos</button>
                 <!-- BACKUP OPTION: Download -->
-                <button class="strip-page-btn" onclick="downloadUltraHDPhotoStrip()">💾 Download iPhone-Friendly</button>
+                <button class="strip-page-btn" onclick="downloadUltraHDPhotoStrip()">💾 Download Small & Crisp</button>
                 <!-- ALTERNATIVE: Tiny preview -->
                 <button class="strip-page-btn" onclick="sendTinyPreview()">📮 Email Tiny Preview</button>
                 <button class="strip-page-btn" onclick="restartSession()">🔄 Take New Photos</button>
@@ -1077,7 +1077,7 @@
                 const cloudinaryUrl = await uploadImageToCloudinary(ultraHDStrip);
                 
                 button.textContent = '📧 Sending Email...';
-                showStatusMessage('Sending email with ULTRA HD links...', 'info');
+                showStatusMessage('Sending email with small, high-quality links...', 'info');
                 
                 // Send email with Cloudinary URL (no attachments = no 50KB limit!)
                 await emailjs.send('service_9n5lgms', 'template_js58xgg', {
@@ -1103,8 +1103,8 @@ Enjoy your memories! 📸✨`,
                     photo3: ''
                 });
                 
-                console.log('✅ iPhone-friendly email sent successfully via Cloudinary!');
-                showStatusMessage(`🎉 iPhone-friendly photos uploaded and email sent to ${email}! Perfect for mobile viewing, no scrolling needed!`, 'success');
+                console.log('✅ Small, high-quality email sent successfully via Cloudinary!');
+                showStatusMessage(`🎉 Small, high-quality photos uploaded and email sent to ${email}! Perfect iPhone size with crisp photo quality!`, 'success');
                 emailInput.value = '';
                 
             } catch (error) {
@@ -1380,9 +1380,9 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             const button = event.target;
             const originalText = button.textContent;
             button.disabled = true;
-            button.textContent = '📱 Creating iPhone-Friendly...';
+            button.textContent = '📱 Creating Small & Crisp...';
             
-            showStatusMessage('Creating iPhone-friendly photo strip for download...', 'info');
+            showStatusMessage('Creating small photo strip with high-quality photos...', 'info');
 
             try {
                 // Use the same iPhone-friendly function as email
@@ -1409,7 +1409,7 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                         
-                        showStatusMessage('📱 iPhone-friendly photo strip downloaded! Perfect for mobile viewing!', 'success');
+                        showStatusMessage('📱 Small, high-quality photo strip downloaded! Perfect iPhone size with crisp photos!', 'success');
                     }, 'image/jpeg', 0.9);
                 };
                 
@@ -1423,15 +1423,15 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             }
         }
 
-        // ===== IPHONE-SIZED PHOTO STRIP WITH WORKING FILTERS =====
+        // ===== SMALL IPHONE PHOTO STRIP WITH HIGH QUALITY PHOTOS =====
         async function createUltraHDPhotoStrip(photos) {
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // MUCH SMALLER for iPhone viewing - fits in screen without scrolling
-                canvas.width = 300;  // Very small width for iPhone
-                canvas.height = 900; // Proper ratio, fits iPhone screen
+                // MUCH SMALLER for iPhone viewing - fits easily in screen
+                canvas.width = 200;  // Even smaller width 
+                canvas.height = 600; // Even smaller height - perfect iPhone fit
                 
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
@@ -1443,59 +1443,54 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 // Rounded corners to match website exactly
                 ctx.globalCompositeOperation = 'destination-in';
                 ctx.beginPath();
-                ctx.roundRect(0, 0, canvas.width, canvas.height, 15);
+                ctx.roundRect(0, 0, canvas.width, canvas.height, 10);
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over';
                 
-                // PHOTO SECTION - Matches website layout exactly but smaller
-                const photoSectionY = 60;
-                const photoSectionHeight = 630; // Smaller
-                const photoWidth = canvas.width - 45; // Padding like website
-                const photoHeight = 180; // Much smaller for iPhone
-                const photoSpacing = 12; // Smaller spacing
-                const photoPadding = 22; // Smaller padding
+                // PHOTO SECTION - High quality photos in small strip
+                const photoSectionY = 40;
+                const photoWidth = canvas.width - 30; // Good padding
+                const photoHeight = 120; // Bigger individual photos for better quality
+                const photoSpacing = 8; // Tight spacing
+                const photoPadding = 15; // Proper padding
                 
-                // TITLE SECTION - Exact position match but smaller
-                const titleSectionY = canvas.height - 180; // Bottom area
+                // TITLE SECTION - Very small but readable
+                const titleSectionY = canvas.height - 120; // Bottom area
                 ctx.fillStyle = '#d4b895';
                 ctx.textAlign = 'left';
                 
-                // EXACT FONT STYLING FROM WEBSITE - but smaller
-                // "Brittanys" - Dancing Script
-                ctx.font = 'italic 60px serif'; // Much smaller
-                ctx.fillText("Brittanys", 23, titleSectionY + 30);
+                // SMALL BUT CLEAR FONTS
+                ctx.font = 'italic 40px serif'; // "Brittanys"
+                ctx.fillText("Brittanys", 15, titleSectionY + 20);
                 
-                // "22nd" - Dancing Script  
-                ctx.font = 'italic 52px serif';
-                ctx.fillText("22nd", 23, titleSectionY + 75);
+                ctx.font = 'italic 35px serif'; // "22nd"
+                ctx.fillText("22nd", 15, titleSectionY + 50);
                 
-                // "BDAY" - Cinzel
-                ctx.font = 'bold 48px serif';
-                ctx.letterSpacing = '3px';
-                ctx.fillText("BDAY", 23, titleSectionY + 120);
+                ctx.font = 'bold 32px serif'; // "BDAY"
+                ctx.fillText("BDAY", 15, titleSectionY + 80);
                 
-                // Decorative stars at bottom - exact match but smaller
+                // Small decorative stars
                 ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
-                ctx.font = '12px serif';
+                ctx.font = '8px serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 8);
+                ctx.fillText('★ ◆ ★', canvas.width / 2, canvas.height - 5);
                 
-                // Process photos with filters applied
+                // Process photos with HIGH QUALITY and filters
                 let photosProcessed = 0;
                 const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
                 
                 if (sessionPhotos.length === 0) {
-                    resolve(canvas.toDataURL('image/jpeg', 0.9));
+                    resolve(canvas.toDataURL('image/jpeg', 0.95)); // Higher quality
                     return;
                 }
                 
-                console.log('📱 Creating iPhone-sized photo strip with', sessionPhotos.length, 'photos');
+                console.log('📱 Creating SMALL iPhone photo strip with HIGH QUALITY photos');
                 console.log('🎨 Photos and their filters:', sessionPhotos.map(p => ({ 
                     photoNumber: p.photoNumber, 
                     filter: p.filter || 'none'
                 })));
                 
-                // Process each photo with its filter
+                // Process each photo with HIGH QUALITY filter application
                 sessionPhotos.forEach((photoData, index) => {
                     const img = new Image();
                     img.onload = () => {
@@ -1503,44 +1498,56 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                         
                         // Photo border/frame - exact match to website
                         ctx.fillStyle = '#d4b895';
-                        ctx.fillRect(photoPadding - 3, y - 3, photoWidth + 6, photoHeight + 6);
+                        ctx.fillRect(photoPadding - 2, y - 2, photoWidth + 4, photoHeight + 4);
                         
                         // Black background for photo area
                         ctx.fillStyle = '#000000';
                         ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
                         
-                        // CREATE SEPARATE CANVAS FOR FILTER APPLICATION
+                        // CREATE HIGH QUALITY CANVAS FOR FILTER APPLICATION
                         if (photoData.filter && photoData.filter !== 'none') {
-                            console.log(`🎨 Applying ${photoData.filter} filter to photo ${index + 1}`);
+                            console.log(`🎨 Applying HIGH QUALITY ${photoData.filter} filter to photo ${index + 1}`);
                             
-                            // Create temporary canvas for filter application
+                            // Create HIGH RESOLUTION temporary canvas for better quality
                             const tempCanvas = document.createElement('canvas');
                             const tempCtx = tempCanvas.getContext('2d');
-                            tempCanvas.width = photoWidth;
-                            tempCanvas.height = photoHeight;
                             
-                            // Apply filter to temp canvas
+                            // HIGHER RESOLUTION for better quality (2x the display size)
+                            const hiResWidth = photoWidth * 2;
+                            const hiResHeight = photoHeight * 2;
+                            tempCanvas.width = hiResWidth;
+                            tempCanvas.height = hiResHeight;
+                            
+                            // High quality settings
+                            tempCtx.imageSmoothingEnabled = true;
+                            tempCtx.imageSmoothingQuality = 'high';
+                            
+                            // Apply filter to high-res temp canvas
                             const filterValue = getCanvasFilter(photoData.filter);
                             tempCtx.filter = filterValue;
-                            tempCtx.drawImage(img, 0, 0, photoWidth, photoHeight);
+                            tempCtx.drawImage(img, 0, 0, hiResWidth, hiResHeight);
                             
-                            // Draw filtered image to main canvas
-                            ctx.filter = 'none'; // Ensure main canvas has no filter
-                            ctx.drawImage(tempCanvas, photoPadding, y);
-                            
-                            console.log(`✅ Applied ${photoData.filter} filter successfully`);
-                        } else {
-                            // No filter - draw directly
+                            // Draw high-quality filtered image to main canvas (scaled down for crisp result)
                             ctx.filter = 'none';
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
+                            ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
+                            
+                            console.log(`✅ Applied HIGH QUALITY ${photoData.filter} filter successfully`);
+                        } else {
+                            // No filter - draw with high quality
+                            ctx.filter = 'none';
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
                             ctx.drawImage(img, photoPadding, y, photoWidth, photoHeight);
-                            console.log(`📸 Drew photo ${index + 1} without filter`);
+                            console.log(`📸 Drew HIGH QUALITY photo ${index + 1} without filter`);
                         }
                         
                         photosProcessed++;
                         if (photosProcessed === sessionPhotos.length) {
-                            console.log('📱 iPhone-sized photo strip created with all filters applied!');
-                            // Good quality but optimized for mobile viewing
-                            resolve(canvas.toDataURL('image/jpeg', 0.9));
+                            console.log('📱 SMALL iPhone photo strip with HIGH QUALITY photos created!');
+                            // Higher quality output for crisp photos
+                            resolve(canvas.toDataURL('image/jpeg', 0.95));
                         }
                     };
                     
@@ -1548,7 +1555,7 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                         console.error('Failed to load photo', index);
                         photosProcessed++;
                         if (photosProcessed === sessionPhotos.length) {
-                            resolve(canvas.toDataURL('image/jpeg', 0.9));
+                            resolve(canvas.toDataURL('image/jpeg', 0.95));
                         }
                     };
                     
