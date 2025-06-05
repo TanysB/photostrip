@@ -1083,9 +1083,18 @@
                     to_name: email.split('@')[0],
                     from_name: "Brittany's 22nd Birthday Party",
                     subject: `🎉 Your ULTRA HD Photo Strip from Brittany's 22nd Birthday!`,
-                    message: `Hi ${email.split('@')[0]}! 🎉\n\nYour ULTRA HD photos from Brittany's 22nd birthday party are ready!\n\nClick the link below to view and download your perfect quality photos:\n\n${cloudinaryUrl}\n\nEnjoy your memories! 📸✨`,
+                    message: `Hi ${email.split('@')[0]}! 🎉
+
+Your ULTRA HD photos from Brittany's 22nd birthday party are ready!
+
+Click the link below to view and download your perfect quality photos:
+
+${cloudinaryUrl}
+
+Enjoy your memories! 📸✨`,
                     photo_strip_url: cloudinaryUrl,
-                    // NO base64 data - using URL instead to bypass 50KB limit!
+                    date: new Date().toLocaleDateString(),
+                    // Set empty values for unused template variables
                     photo_strip: '',
                     photo1: '',
                     photo2: '',
@@ -1206,8 +1215,16 @@
                     to_name: email.split('@')[0],
                     from_name: "Brittany's 22nd Birthday Party",
                     subject: `📮 Preview: Your Photos from Brittany's 22nd Birthday!`,
-                    message: `Hi ${email.split('@')[0]}! 📸\n\nHere's a small preview of your photos from Brittany's 22nd birthday party!\n\nFor FULL ULTRA HD quality, please visit the website and use the download button or set up cloud upload.\n\nThis is just a tiny preview - the full quality versions are amazing! 🎉`,
+                    message: `Hi ${email.split('@')[0]}! 📸
+
+Here's a small preview of your photos from Brittany's 22nd birthday party!
+
+For FULL ULTRA HD quality, please visit the website and use the download button or set up cloud upload.
+
+This is just a tiny preview - the full quality versions are amazing! 🎉`,
                     photo_strip: tinyPhotoStrip,
+                    date: new Date().toLocaleDateString(),
+                    // Set empty values for unused template variables
                     photo_strip_url: '',
                     photo1: '',
                     photo2: '',
