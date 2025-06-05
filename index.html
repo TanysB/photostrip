@@ -818,6 +818,8 @@
                 <button class="strip-page-btn" onclick="testCloudinaryConnection()" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white;">🔧 Test Cloudinary Setup</button>
                 <!-- TEST BUTTON: Check if EmailJS template works -->
                 <button class="strip-page-btn" onclick="testEmailTemplate()" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">📧 Test Email Template</button>
+                <!-- TEST BUTTON: Test screenshot function -->
+                <button class="strip-page-btn" onclick="testScreenshotFunction()" style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); color: white;">📸 Test Screenshot</button>
                 <!-- MAIN OPTION: Cloud upload (bypasses 50KB limit) -->
                 <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()">📧 Email Perfect Screenshot</button>
                 <!-- BACKUP OPTION: Download -->
@@ -1388,6 +1390,10 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 // Use the same screenshot function as email
                 const photoStripScreenshot = await createUltraHDPhotoStrip(capturedPhotos);
                 
+                if (!photoStripScreenshot || photoStripScreenshot.length < 100) {
+                    throw new Error('Screenshot failed - no valid image data');
+                }
+                
                 button.textContent = '💾 Downloading...';
                 
                 const canvas = document.createElement('canvas');
@@ -1428,48 +1434,98 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             return new Promise(async (resolve) => {
                 console.log('📸 Taking screenshot of the actual photo strip displayed on screen...');
                 
-                // Find the photo strip element that's currently displayed
-                const photoStripElement = document.querySelector('.photo-strip-container .photo-strip-canvas');
+                // Try multiple selectors to find the photo strip element
+                let photoStripElement = null;
+                
+                // Try different possible selectors for the photo strip
+                const selectors = [
+                    '.photo-strip-canvas',
+                    '#photoStripCanvas', 
+                    'canvas[id*="strip"]',
+                    'canvas[class*="strip"]',
+                    '.strip-display canvas',
+                    '.photo-strip-container canvas',
+                    'canvas'  // Last resort - find any canvas
+                ];
+                
+                for (const selector of selectors) {
+                    photoStripElement = document.querySelector(selector);
+                    if (photoStripElement) {
+                        console.log(`✅ Found photo strip element with selector: ${selector}`);
+                        break;
+                    }
+                }
+                
+                // If still no element found, try to find it in the strip page
+                if (!photoStripElement) {
+                    const stripPage = document.querySelector('.strip-page');
+                    if (stripPage) {
+                        photoStripElement = stripPage.querySelector('canvas');
+                        if (photoStripElement) {
+                            console.log('✅ Found canvas in strip page');
+                        }
+                    }
+                }
                 
                 if (!photoStripElement) {
                     console.error('❌ Photo strip element not found on screen');
-                    resolve(null);
+                    console.log('🔄 Available elements on page:');
+                    document.querySelectorAll('canvas').forEach((canvas, i) => {
+                        console.log(`Canvas ${i}:`, canvas.id, canvas.className, canvas.width, canvas.height);
+                    });
+                    
+                    // Fallback to manual creation
+                    console.log('🔄 Using fallback method...');
+                    resolve(await createFallbackPhotoStrip(photos));
                     return;
                 }
                 
                 try {
-                    // Make sure the element is visible and rendered
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    console.log('📸 Element found:', photoStripElement.tagName, photoStripElement.id, photoStripElement.className);
+                    console.log('📏 Element dimensions:', photoStripElement.width, photoStripElement.height, photoStripElement.offsetWidth, photoStripElement.offsetHeight);
                     
-                    // Screenshot the EXACT photo strip as displayed on screen
+                    // Make sure the element is visible and rendered
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // If it's a canvas, just convert it directly to data URL
+                    if (photoStripElement.tagName.toLowerCase() === 'canvas') {
+                        console.log('📸 Converting canvas directly to data URL...');
+                        const dataURL = photoStripElement.toDataURL('image/jpeg', 0.95);
+                        
+                        if (dataURL && dataURL.length > 100) {
+                            console.log('✅ Canvas converted successfully! Size:', dataURL.length);
+                            resolve(dataURL);
+                            return;
+                        } else {
+                            console.error('❌ Canvas conversion failed or empty');
+                        }
+                    }
+                    
+                    // Try html2canvas as backup
+                    console.log('📸 Trying html2canvas screenshot...');
                     const canvas = await html2canvas(photoStripElement, {
-                        backgroundColor: null, // Preserve transparency if any
-                        scale: 2, // High quality 2x scale
+                        backgroundColor: '#3d2817',
+                        scale: 2,
                         useCORS: true,
                         allowTaint: true,
-                        height: photoStripElement.offsetHeight,
-                        width: photoStripElement.offsetWidth,
+                        height: photoStripElement.offsetHeight || 600,
+                        width: photoStripElement.offsetWidth || 400,
                         scrollX: 0,
-                        scrollY: 0,
-                        windowWidth: window.innerWidth,
-                        windowHeight: window.innerHeight
+                        scrollY: 0
                     });
                     
-                    console.log('✅ Screenshot captured! Dimensions:', canvas.width, 'x', canvas.height);
-                    
-                    // Convert to high-quality data URL
                     const dataURL = canvas.toDataURL('image/jpeg', 0.95);
                     
-                    console.log('🎉 Perfect screenshot of actual photo strip captured!');
-                    console.log('📏 This is EXACTLY what the user sees on screen - same fonts, layout, filters, everything!');
-                    
-                    resolve(dataURL);
+                    if (dataURL && dataURL.length > 100) {
+                        console.log('✅ html2canvas screenshot successful! Size:', dataURL.length);
+                        resolve(dataURL);
+                    } else {
+                        throw new Error('Screenshot produced empty result');
+                    }
                     
                 } catch (error) {
                     console.error('❌ Screenshot failed:', error);
-                    console.log('🔄 Falling back to canvas recreation...');
-                    
-                    // Fallback to manual creation if screenshot fails
+                    console.log('🔄 Falling back to manual creation...');
                     resolve(await createFallbackPhotoStrip(photos));
                 }
             });
@@ -1478,27 +1534,126 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
         // ===== FALLBACK: MANUAL PHOTO STRIP CREATION =====
         async function createFallbackPhotoStrip(photos) {
             return new Promise((resolve) => {
-                console.log('🔄 Creating fallback photo strip...');
+                console.log('🔄 Creating fallback photo strip with actual photos...');
                 
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // Match the actual photo strip dimensions from the website
+                // iPhone-friendly dimensions
                 canvas.width = 400;  
                 canvas.height = 1200; 
                 
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                // Background matching website
                 ctx.fillStyle = '#3d2817';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Simple fallback text
+                // Title section
                 ctx.fillStyle = '#d4b895';
-                ctx.font = 'bold 32px serif';
-                ctx.textAlign = 'center';
-                ctx.fillText("Brittany's 22nd Birthday", canvas.width / 2, 100);
-                ctx.fillText("Photo Strip", canvas.width / 2, 150);
+                ctx.textAlign = 'left';
                 
-                resolve(canvas.toDataURL('image/jpeg', 0.9));
+                ctx.font = 'italic bold 60px serif';
+                ctx.fillText("Brittanys", 40, 100);
+                
+                ctx.font = 'italic bold 50px serif';
+                ctx.fillText("22nd", 40, 160);
+                
+                ctx.font = 'bold 45px serif';
+                ctx.fillText("BDAY", 40, 210);
+                
+                // Photo section
+                const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
+                
+                if (sessionPhotos.length === 0) {
+                    // Just return the title strip if no photos
+                    resolve(canvas.toDataURL('image/jpeg', 0.9));
+                    return;
+                }
+                
+                const photoWidth = 320;
+                const photoHeight = 240;
+                const startY = 280;
+                const photoSpacing = 40;
+                
+                let photosProcessed = 0;
+                
+                sessionPhotos.forEach((photoData, index) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const y = startY + (index * (photoHeight + photoSpacing));
+                        
+                        // Photo border
+                        ctx.fillStyle = '#d4b895';
+                        ctx.fillRect(35, y - 5, photoWidth + 10, photoHeight + 10);
+                        
+                        // Apply filter if needed
+                        if (photoData.filter && photoData.filter !== 'none') {
+                            const filterValue = getCanvasFilter(photoData.filter);
+                            ctx.filter = filterValue;
+                        } else {
+                            ctx.filter = 'none';
+                        }
+                        
+                        // Draw photo
+                        ctx.drawImage(img, 40, y, photoWidth, photoHeight);
+                        ctx.filter = 'none';
+                        
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            console.log('✅ Fallback photo strip created successfully!');
+                            resolve(canvas.toDataURL('image/jpeg', 0.9));
+                        }
+                    };
+                    
+                    img.onerror = () => {
+                        console.error('Failed to load photo in fallback');
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            resolve(canvas.toDataURL('image/jpeg', 0.9));
+                        }
+                    };
+                    
+                    img.src = photoData.data;
+                });
             });
+        }
+
+        // ===== TEST SCREENSHOT FUNCTION =====
+        async function testScreenshotFunction() {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = '📸 Testing...';
+            
+            try {
+                console.log('📸 Testing screenshot function...');
+                showStatusMessage('Testing screenshot function...', 'info');
+                
+                const screenshot = await createUltraHDPhotoStrip(capturedPhotos);
+                
+                if (!screenshot) {
+                    throw new Error('Screenshot returned null');
+                }
+                
+                if (screenshot.length < 100) {
+                    throw new Error('Screenshot data too small: ' + screenshot.length + ' characters');
+                }
+                
+                console.log('✅ Screenshot test successful! Length:', screenshot.length);
+                showStatusMessage(`✅ Screenshot test successful! Got ${screenshot.length} characters of image data.`, 'success');
+                
+                // Show first 100 characters for debugging
+                console.log('📊 Screenshot preview:', screenshot.substring(0, 100) + '...');
+                
+            } catch (error) {
+                console.error('❌ Screenshot test failed:', error);
+                showStatusMessage('❌ Screenshot test failed: ' + error.message, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
         }
 
         // ===== TEST EMAIL TEMPLATE =====
@@ -1634,6 +1789,7 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
         }
 
         // Make functions globally available
+        window.testScreenshotFunction = testScreenshotFunction;
         window.testEmailTemplate = testEmailTemplate;
         window.testCloudinaryConnection = testCloudinaryConnection;
         window.uploadToCloudinaryAndEmail = uploadToCloudinaryAndEmail;
