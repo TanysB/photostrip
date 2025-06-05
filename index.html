@@ -266,16 +266,15 @@
                 inset 0 0 25px rgba(61, 40, 23, 0.3);
         }
 
-        /* UPDATED: Much bigger camera frame during countdown */
-.camera-screen.large {
-    width: 1800px;      /* Increased from 1000px */
-    height: 850px;      /* Increased from 750px */
-    border: 30px solid #3d2817;  /* Increased from 25px */
-    border-radius: 40px;  /* Increased from default */
-    box-shadow: 
-        0 30px 70px rgba(61, 40, 23, 0.7),      /* Enhanced shadow */
-        inset 0 0 35px rgba(61, 40, 23, 0.4);   /* Enhanced inner shadow */
-}
+        .camera-screen.large {
+            width: 1800px;
+            height: 850px;
+            border: 30px solid #3d2817;
+            border-radius: 40px;
+            box-shadow: 
+                0 30px 70px rgba(61, 40, 23, 0.7),
+                inset 0 0 35px rgba(61, 40, 23, 0.4);
+        }
 
         #video, #captureVideo {
             width: 100%;
@@ -328,7 +327,6 @@
             left: 100%;
         }
 
-        
         .filter-btn.active {
             background: linear-gradient(135deg, #d4b895 0%, #c9a876 50%, #b8a082 100%);
             box-shadow: inset 0 3px 10px rgba(61, 40, 23, 0.2);
@@ -417,8 +415,6 @@
             z-index: 1;
         }
 
-
-
         .photo-strip::after {
             content: '★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★';
             position: absolute;
@@ -430,28 +426,6 @@
             color: rgba(139, 115, 85, 0.3);
             z-index: 2;
             letter-spacing: 0.05in;
-        }
-
-        .strip-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 0.4in;
-            background: url('background.png') center/cover no-repeat;
-            opacity: 0.1;
-            z-index: 1;
-        }
-
-        .strip-bottom-bg {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 1.5in;
-            background: yellow;
-            opacity: 1;
-            z-index: 1;
         }
 
         .strip-photos {
@@ -489,51 +463,40 @@
             text-align: left;
         }
 
-               /* UPDATED: Matching fonts for photo strip */
         .strip-title .brittanys {
-            font-family: 'Great Vibes', cursive;  /* Changed from 'Dancing Script' */
+            font-family: 'Great Vibes', cursive;
             font-size: 0.4in;
-            font-weight: 400;  /* Changed from 700 to match main title */
+            font-weight: 400;
             color: #d4b895;
             line-height: 0.9;
             margin-bottom: -2px;
             animation: none;
             transform: none;
-            text-shadow: 2px 2px 4px rgba(61, 40, 23, 0.5);  /* Added shadow */
+            text-shadow: 2px 2px 4px rgba(61, 40, 23, 0.5);
         }
         
         .strip-title .twenty-second {
-            font-family: 'Great Vibes', cursive;  /* Changed from 'Dancing Script' */
+            font-family: 'Great Vibes', cursive;
             font-size: 0.4in;
-            font-weight: 400;  /* Changed from 600 to match main title */
+            font-weight: 400;
             color: #d4b895;
             line-height: 0.9;
             margin-bottom: 2px;
             animation: none;
             transform: none;
-            text-shadow: 2px 2px 4px rgba(61, 40, 23, 0.5);  /* Added shadow */
+            text-shadow: 2px 2px 4px rgba(61, 40, 23, 0.5);
         }
         
         .strip-title .bday {
-            font-family: 'Cinzel', serif;  /* Already correct */
+            font-family: 'Cinzel', serif;
             font-size: 0.4in;
             color: #d4b895;
-            font-weight: 100;  /* Changed from 800 to match main title */
-            letter-spacing: 0.12in;  /* Increased from 2px */
+            font-weight: 100;
+            letter-spacing: 0.12in;
             text-transform: uppercase;
             animation: none;
             transform: none;
-            text-shadow: 2px 2px 4px rgba(61, 40, 23, 0.5);  /* Added shadow */
-        }
-        .strip-cowboy {
-            position: absolute;
-            bottom: 0.15in;
-            left: 0.15in;
-            right: 0.15in;
-            height: 0.25in;
-            background: url('cowboy.png') center/contain no-repeat;
-            opacity: 0.12;
-            z-index: 4;
+            text-shadow: 2px 2px 4px rgba(61, 40, 23, 0.5);
         }
 
         .phone-input {
@@ -825,15 +788,10 @@
                 </div>
                 <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
                 <div id="statusMessage"></div>
-                <!-- TEST BUTTON: Check if Cloudinary is working -->
                 <button class="strip-page-btn" onclick="testCloudinaryConnection()" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white;">🔧 Test Cloudinary Setup</button>
-                <!-- TEST BUTTON: Check if EmailJS template works -->
                 <button class="strip-page-btn" onclick="testEmailTemplate()" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">📧 Test Email Template</button>
-                <!-- MAIN OPTION: Cloud upload (bypasses 50KB limit) -->
                 <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()">📧 Email Small & Crisp Photos</button>
-                <!-- BACKUP OPTION: Download -->
                 <button class="strip-page-btn" onclick="downloadUltraHDPhotoStrip()">💾 Download Small & Crisp</button>
-                <!-- ALTERNATIVE: Tiny preview -->
                 <button class="strip-page-btn" onclick="sendTinyPreview()">📮 Email Tiny Preview</button>
                 <button class="strip-page-btn" onclick="restartSession()">🔄 Take New Photos</button>
             </div>
@@ -862,8 +820,8 @@
         let sessionId = Date.now();
 
         // ✅ ***** CLOUDINARY SETTINGS CONFIGURED ***** ✅
-        const CLOUDINARY_CLOUD_NAME = 'dou32nvcj'; // Your actual Cloudinary cloud name
-        const CLOUDINARY_UPLOAD_PRESET = 'brittany_birthday'; // Fixed: matches your actual preset name
+        const CLOUDINARY_CLOUD_NAME = 'dou32nvcj';
+        const CLOUDINARY_UPLOAD_PRESET = 'brittany_birthday';
 
         // Audio elements
         const beepSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAAA==');
@@ -1065,11 +1023,6 @@
                 return;
             }
 
-            // Test Cloudinary connection first
-            console.log('🔧 Testing Cloudinary connection...');
-            console.log('Cloud Name:', CLOUDINARY_CLOUD_NAME);
-            console.log('Upload Preset:', CLOUDINARY_UPLOAD_PRESET);
-
             const button = event.target;
             const originalText = button.textContent;
             button.disabled = true;
@@ -1078,19 +1031,16 @@
             try {
                 showStatusMessage('Creating iPhone-friendly photo strip...', 'info');
                 
-                // Create UNLIMITED SIZE photo strip
                 const ultraHDStrip = await createUltraHDPhotoStrip(capturedPhotos);
                 
                 button.textContent = '⬆️ Uploading ULTRA HD...';
                 showStatusMessage('Uploading ULTRA HD images to cloud... This may take a moment.', 'info');
                 
-                // Upload to Cloudinary (NO SIZE LIMITS!)
                 const cloudinaryUrl = await uploadImageToCloudinary(ultraHDStrip);
                 
                 button.textContent = '📧 Sending Email...';
                 showStatusMessage('Sending email with small, high-quality links...', 'info');
                 
-                // Send email with Cloudinary URL (no attachments = no 50KB limit!)
                 await emailjs.send('service_9n5lgms', 'template_js58xgg', {
                     to_email: email,
                     to_name: email.split('@')[0],
@@ -1107,7 +1057,6 @@ ${cloudinaryUrl}
 Enjoy your memories! 📸✨`,
                     photo_strip_url: cloudinaryUrl,
                     date: new Date().toLocaleDateString(),
-                    // Set empty values for unused template variables
                     photo_strip: '',
                     photo1: '',
                     photo2: '',
@@ -1161,10 +1110,9 @@ Enjoy your memories! 📸✨`,
                     const errorText = await response.text();
                     console.error('❌ Cloudinary error response:', errorText);
                     
-                    // Specific error messages
                     if (response.status === 400) {
                         if (errorText.includes('Invalid upload preset')) {
-                            throw new Error('Upload preset "brittanys_birthday" not found. Please check your Cloudinary settings.');
+                            throw new Error('Upload preset "brittany_birthday" not found. Please check your Cloudinary settings.');
                         } else if (errorText.includes('unsigned')) {
                             throw new Error('Upload preset must be set to "Unsigned" mode. Check your Cloudinary preset settings.');
                         } else {
@@ -1237,7 +1185,6 @@ For FULL ULTRA HD quality, please visit the website and use the download button 
 This is just a tiny preview - the full quality versions are amazing! 🎉`,
                     photo_strip: tinyPhotoStrip,
                     date: new Date().toLocaleDateString(),
-                    // Set empty values for unused template variables
                     photo_strip_url: '',
                     photo1: '',
                     photo2: '',
@@ -1267,7 +1214,6 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // EXTREMELY small to fit in 50KB
                 canvas.width = 120;
                 canvas.height = 360;
                 
@@ -1287,7 +1233,7 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 const photoSpacing = 8;
                 
                 const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId);
-                const photosToProcess = sessionPhotos.slice(0, 3); // Only process first 3
+                const photosToProcess = sessionPhotos.slice(0, 3);
                 
                 if (photosToProcess.length === 0) {
                     reject(new Error('No valid photos from current session'));
@@ -1303,7 +1249,6 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                         try {
                             const y = startY + (index * (photoHeight + photoSpacing));
                             
-                            // Validate image loaded properly
                             if (img.width === 0 || img.height === 0) {
                                 console.error('Invalid image dimensions for photo', index);
                                 photosProcessed++;
@@ -1313,7 +1258,6 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                                 return;
                             }
                             
-                            // Draw photo
                             ctx.drawImage(img, 8, y, photoWidth, photoHeight);
                             console.log('✅ Drew photo', index + 1, 'to tiny strip');
                             
@@ -1338,7 +1282,6 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                         }
                     };
                     
-                    // Validate photo data before loading
                     if (!photoData.data || !photoData.data.startsWith('data:image/')) {
                         console.error('Invalid photo data for photo', index);
                         photosProcessed++;
@@ -1353,13 +1296,11 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 
                 function finalizeTinyStrip() {
                     try {
-                        // MAXIMUM compression - 5% quality to fit in 50KB
                         const result = canvas.toDataURL('image/jpeg', 0.05);
                         console.log('📸 Tiny strip created, size:', result.length, 'characters');
                         
                         if (result.length > 50000) {
                             console.warn('Tiny strip still too large:', result.length);
-                            // Try even more compression
                             const ultraTiny = canvas.toDataURL('image/jpeg', 0.02);
                             resolve(ultraTiny);
                         } else {
@@ -1371,7 +1312,6 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                     }
                 }
                 
-                // Timeout fallback
                 setTimeout(() => {
                     if (photosProcessed < photosToProcess.length) {
                         console.warn('Timeout waiting for photos to load, proceeding anyway');
@@ -1396,7 +1336,6 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             showStatusMessage('Creating small photo strip with high-quality photos...', 'info');
 
             try {
-                // Use the same iPhone-friendly function as email
                 const iphoneFriendlyStrip = await createUltraHDPhotoStrip(capturedPhotos);
                 
                 button.textContent = '💾 Downloading...';
@@ -1440,18 +1379,15 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // MUCH SMALLER for iPhone viewing - fits easily in screen
-                canvas.width = 200;  // Even smaller width 
-                canvas.height = 600; // Even smaller height - perfect iPhone fit
+                canvas.width = 200;
+                canvas.height = 600;
                 
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 
-                // EXACT BACKGROUND MATCH - Dark brown like the website
                 ctx.fillStyle = '#3d2817';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Rounded corners to match website exactly
                 ctx.globalCompositeOperation = 'destination-in';
                 ctx.beginPath();
                 ctx.roundRect(0, 0, canvas.width, canvas.height, 10);
@@ -1461,13 +1397,10 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 // ✅ FIXED: ADD BACKGROUND.PNG LIKE IN PREVIEW
                 const backgroundImg = new Image();
                 backgroundImg.onload = () => {
-                    // Add background image at bottom (matches CSS: bottom: 0, height: 1.5in)
-                    const bottomBgHeight = 90; // 1.5in equivalent in canvas
-                    ctx.globalAlpha = 0.1; // Match CSS opacity
+                    const bottomBgHeight = 90;
+                    ctx.globalAlpha = 0.1;
                     ctx.drawImage(backgroundImg, 0, canvas.height - bottomBgHeight, canvas.width, bottomBgHeight);
-                    ctx.globalAlpha = 1.0; // Reset opacity
-                    
-                    // Continue with the rest of the strip creation
+                    ctx.globalAlpha = 1.0;
                     createRestOfStrip();
                 };
                 backgroundImg.onerror = () => {
@@ -1477,13 +1410,273 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 backgroundImg.src = 'background.png';
                 
                 function createRestOfStrip() {
-                    // PHOTO SECTION - High quality photos in small strip
                     const photoSectionY = 40;
-                    const photoWidth = canvas.width - 30; // Good padding
-                    const photoHeight = 120; // Bigger individual photos for better quality
-                    const photoSpacing = 8; // Tight spacing
-                    const photoPadding = 15; // Proper padding
+                    const photoWidth = canvas.width - 30;
+                    const photoHeight = 120;
+                    const photoSpacing = 8;
+                    const photoPadding = 15;
                     
-                    // TITLE SECTION - Very small but readable, EXACT FONT MATCH
-                    const titleSectionY = canvas.height - 120; // Bottom area
+                    // ✅ FIXED: EXACT FONT MATCH to CSS
+                    const titleSectionY = canvas.height - 120;
                     ctx.fillStyle = '#d4b895';
+                    ctx.textAlign = 'left';
+                    
+                    ctx.font = 'italic 32px serif';
+                    ctx.fillText("Brittanys", 15, titleSectionY + 20);
+                    
+                    ctx.font = 'italic 30px serif';
+                    ctx.fillText("22nd", 15, titleSectionY + 50);
+                    
+                    ctx.font = '100 24px serif';
+                    ctx.letterSpacing = '8px';
+                    ctx.fillText("BDAY", 15, titleSectionY + 80);
+                    ctx.letterSpacing = '0px';
+                    
+                    ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
+                    ctx.font = '8px serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('★ ◆ ★', canvas.width / 2, canvas.height - 5);
+                    
+                    let photosProcessed = 0;
+                    const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
+                    
+                    if (sessionPhotos.length === 0) {
+                        resolve(canvas.toDataURL('image/jpeg', 0.95));
+                        return;
+                    }
+                    
+                    console.log('📱 Creating SMALL iPhone photo strip with HIGH QUALITY photos');
+                    console.log('🎨 Photos and their filters:', sessionPhotos.map(p => ({ 
+                        photoNumber: p.photoNumber, 
+                        filter: p.filter || 'none'
+                    })));
+                    
+                    sessionPhotos.forEach((photoData, index) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const y = photoSectionY + (index * (photoHeight + photoSpacing));
+                            
+                            ctx.fillStyle = '#d4b895';
+                            ctx.fillRect(photoPadding - 2, y - 2, photoWidth + 4, photoHeight + 4);
+                            
+                            ctx.fillStyle = '#000000';
+                            ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
+                            
+                            // ✅ FIXED: MATCH ZOOM LEVEL (120% width, 180% height like preview)
+                            if (photoData.filter && photoData.filter !== 'none') {
+                                console.log(`🎨 Applying HIGH QUALITY ${photoData.filter} filter to photo ${index + 1}`);
+                                
+                                const tempCanvas = document.createElement('canvas');
+                                const tempCtx = tempCanvas.getContext('2d');
+                                
+                                const hiResWidth = photoWidth * 2;
+                                const hiResHeight = photoHeight * 2;
+                                tempCanvas.width = hiResWidth;
+                                tempCanvas.height = hiResHeight;
+                                
+                                tempCtx.imageSmoothingEnabled = true;
+                                tempCtx.imageSmoothingQuality = 'high';
+                                
+                                const filterValue = getCanvasFilter(photoData.filter);
+                                tempCtx.filter = filterValue;
+                                
+                                const zoomedWidth = hiResWidth * 1.2;
+                                const zoomedHeight = hiResHeight * 1.8;
+                                const offsetX = -(zoomedWidth - hiResWidth) / 2;
+                                const offsetY = -(zoomedHeight - hiResHeight) / 2;
+                                
+                                tempCtx.drawImage(img, offsetX, offsetY, zoomedWidth, zoomedHeight);
+                                
+                                ctx.filter = 'none';
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
+                                ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
+                                
+                                console.log(`✅ Applied HIGH QUALITY ${photoData.filter} filter with matching zoom`);
+                            } else {
+                                ctx.filter = 'none';
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
+                                
+                                const zoomedWidth = photoWidth * 1.2;
+                                const zoomedHeight = photoHeight * 1.8;
+                                const offsetX = photoPadding - (zoomedWidth - photoWidth) / 2;
+                                const offsetY = y - (zoomedHeight - photoHeight) / 2;
+                                
+                                ctx.drawImage(img, offsetX, offsetY, zoomedWidth, zoomedHeight);
+                                console.log(`📸 Drew HIGH QUALITY photo ${index + 1} with matching zoom, no filter`);
+                            }
+                            
+                            photosProcessed++;
+                            if (photosProcessed === sessionPhotos.length) {
+                                console.log('📱 SMALL iPhone photo strip with HIGH QUALITY photos and matching layout created!');
+                                resolve(canvas.toDataURL('image/jpeg', 0.95));
+                            }
+                        };
+                        
+                        img.onerror = () => {
+                            console.error('Failed to load photo', index);
+                            photosProcessed++;
+                            if (photosProcessed === sessionPhotos.length) {
+                                resolve(canvas.toDataURL('image/jpeg', 0.95));
+                            }
+                        };
+                        
+                        img.src = photoData.data;
+                    });
+                }
+                
+                // If no background image, start immediately
+                if (!backgroundImg.complete) {
+                    setTimeout(() => {
+                        if (!backgroundImg.complete) {
+                            createRestOfStrip();
+                        }
+                    }, 1000);
+                }
+            });
+        }
+
+        // ===== TEST EMAIL TEMPLATE =====
+        async function testEmailTemplate() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showStatusMessage('Please enter an email address first', 'error');
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = '📧 Testing...';
+            
+            try {
+                console.log('📧 Testing EmailJS template with minimal data...');
+                showStatusMessage('Testing EmailJS template...', 'info');
+                
+                const testData = {
+                    to_email: email,
+                    message: `Hi there! This is a test email from Brittany's 22nd birthday photo booth. If you're reading this, the template is working correctly! 🎉`
+                };
+                
+                console.log('Test email data:', testData);
+                
+                await emailjs.send('service_9n5lgms', 'template_js58xgg', testData);
+                
+                console.log('✅ Test email sent successfully!');
+                showStatusMessage(`✅ Test email sent to ${email}! Check your inbox to confirm the template works.`, 'success');
+                
+            } catch (error) {
+                console.error('❌ Test email failed:', error);
+                
+                let helpMessage = '❌ Test email failed: ' + error.message + '\n\n';
+                
+                if (error.message.includes('corrupted') || error.message.includes('Template')) {
+                    helpMessage += '🔧 FIX: Your EmailJS template has corrupted variables. Please recreate it from scratch using the ultra minimal template.';
+                } else if (error.message.includes('template not found')) {
+                    helpMessage += '🔧 FIX: Template "template_js58xgg" not found. Check your template ID.';
+                } else if (error.message.includes('service not found')) {
+                    helpMessage += '🔧 FIX: Service "service_9n5lgms" not found. Check your service ID.';
+                } else {
+                    helpMessage += '🔧 FIX: Check your EmailJS settings and try again.';
+                }
+                
+                showStatusMessage(helpMessage, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        // ===== TEST CLOUDINARY CONNECTION =====
+        async function testCloudinaryConnection() {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = '🔧 Testing...';
+            
+            try {
+                console.log('🔧 Testing Cloudinary configuration...');
+                console.log('Cloud Name:', CLOUDINARY_CLOUD_NAME);
+                console.log('Upload Preset:', CLOUDINARY_UPLOAD_PRESET);
+                
+                showStatusMessage('Testing Cloudinary connection...', 'info');
+                
+                const testCanvas = document.createElement('canvas');
+                testCanvas.width = 100;
+                testCanvas.height = 100;
+                const testCtx = testCanvas.getContext('2d');
+                
+                testCtx.fillStyle = '#3d2817';
+                testCtx.fillRect(0, 0, 100, 100);
+                testCtx.fillStyle = '#d4b895';
+                testCtx.font = '20px serif';
+                testCtx.textAlign = 'center';
+                testCtx.fillText('TEST', 50, 55);
+                
+                const testImage = testCanvas.toDataURL('image/jpeg', 0.8);
+                console.log('📸 Created test image, size:', testImage.length, 'characters');
+                
+                const uploadedUrl = await uploadImageToCloudinary(testImage);
+                
+                console.log('✅ Test upload successful!');
+                showStatusMessage(`✅ Cloudinary test successful! Your setup is working perfectly. Test image uploaded: ${uploadedUrl.substring(0, 50)}...`, 'success');
+                
+            } catch (error) {
+                console.error('❌ Cloudinary test failed:', error);
+                
+                let helpMessage = '❌ Cloudinary test failed: ' + error.message + '\n\n';
+                
+                if (error.message.includes('Invalid upload preset')) {
+                    helpMessage += '🔧 FIX: Go to Cloudinary → Settings → Upload → Upload Presets → Make sure "brittany_birthday" exists and is set to "Unsigned"';
+                } else if (error.message.includes('Unauthorized')) {
+                    helpMessage += '🔧 FIX: Check that your cloud name "dou32nvcj" is correct in your Cloudinary dashboard';
+                } else if (error.message.includes('unsigned')) {
+                    helpMessage += '🔧 FIX: Your upload preset must be set to "Unsigned" mode. Edit the preset in Cloudinary settings.';
+                } else if (error.message.includes('Network')) {
+                    helpMessage += '🔧 FIX: Check your internet connection and try again';
+                } else {
+                    helpMessage += '🔧 FIX: Please check your Cloudinary settings and try again';
+                }
+                
+                showStatusMessage(helpMessage, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        function restartSession() {
+            document.getElementById('stripPage').classList.remove('active');
+            document.getElementById('startPage').classList.add('active');
+            
+            sessionId = Date.now();
+            capturedPhotos = [];
+            photoCount = 0;
+            currentFilter = 'none';
+            document.getElementById('emailInput').value = '';
+            document.getElementById('statusMessage').style.display = 'none';
+            
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`stripPhoto${i}`).innerHTML = '';
+            }
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.filter-btn').classList.add('active');
+        }
+
+        // Make functions globally available
+        window.testEmailTemplate = testEmailTemplate;
+        window.testCloudinaryConnection = testCloudinaryConnection;
+        window.uploadToCloudinaryAndEmail = uploadToCloudinaryAndEmail;
+        window.sendTinyPreview = sendTinyPreview;
+        window.downloadUltraHDPhotoStrip = downloadUltraHDPhotoStrip;
+        window.startPhotoSession = startPhotoSession;
+        window.setFilter = setFilter;
+        window.startCountdown = startCountdown;
+        window.restartSession = restartSession;
+    </script>
+</body>
+</html>
