@@ -1165,9 +1165,9 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // Set canvas size (HIGH QUALITY - may exceed email limits)
-                    canvas.width = 500;  // Much larger for high quality
-                    canvas.height = 1500; // Full resolution
+                    // Set canvas size (MUCH smaller for email size limits)
+                    canvas.width = 200;  // Reduced from 400
+                    canvas.height = 600; // Reduced from 1200
                     
                     // Fill background (dark brown like the photo strip)
                     ctx.fillStyle = '#3d2817';
@@ -1176,44 +1176,44 @@
                     // Add rounded corners
                     ctx.globalCompositeOperation = 'destination-in';
                     ctx.beginPath();
-                    ctx.roundRect(0, 0, canvas.width, canvas.height, 15);
+                    ctx.roundRect(0, 0, canvas.width, canvas.height, 10);
                     ctx.fill();
                     ctx.globalCompositeOperation = 'source-over';
                     
                     // Title section styling
-                    const titleY = canvas.height - 150;
+                    const titleY = canvas.height - 100;
                     
-                    // Draw title text (better quality)
+                    // Draw title text (smaller)
                     ctx.fillStyle = '#d4b895';
                     ctx.textAlign = 'left';
                     
-                    ctx.font = 'italic bold 24px serif';
-                    ctx.fillText("Brittanys", 20, titleY + 15);
+                    ctx.font = 'italic bold 16px serif';
+                    ctx.fillText("Brittanys", 15, titleY + 10);
                     
-                    ctx.font = 'italic bold 20px serif';
-                    ctx.fillText("22nd", 20, titleY + 40);
+                    ctx.font = 'italic bold 14px serif';
+                    ctx.fillText("22nd", 15, titleY + 28);
                     
-                    ctx.font = 'bold 18px serif';
-                    ctx.fillText("BDAY", 20, titleY + 65);
+                    ctx.font = 'bold 13px serif';
+                    ctx.fillText("BDAY", 15, titleY + 45);
                     
-                    // Add session info
-                    ctx.font = '12px serif';
+                    // Add session info (very small text)
+                    ctx.font = '8px serif';
                     ctx.fillStyle = 'rgba(212, 184, 149, 0.7)';
                     ctx.textAlign = 'center';
-                    ctx.fillText(`${new Date().toLocaleDateString()}`, canvas.width / 2, titleY + 95);
+                    ctx.fillText(`${new Date().toLocaleDateString()}`, canvas.width / 2, titleY + 65);
                     
-                    // Add decorative stars
+                    // Add decorative stars (smaller)
                     ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
-                    ctx.font = '12px serif';
+                    ctx.font = '8px serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
+                    ctx.fillText('★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 15);
                     
-                    // Draw the actual captured photos (HIGH QUALITY)
+                    // Draw the actual captured photos (much smaller)
                     let photosProcessed = 0;
-                    const photoWidth = canvas.width - 60; // Better margins
-                    const photoHeight = 300; // Much larger photos for quality
-                    const startY = 50;
-                    const photoSpacing = 25;
+                    const photoWidth = canvas.width - 30; // Smaller margins
+                    const photoHeight = 120; // Much smaller height for each photo
+                    const startY = 25;
+                    const photoSpacing = 10;
                     
                     // Process each photo
                     photos.forEach((photoData, index) => {
@@ -1224,30 +1224,31 @@
                         img.onload = () => {
                             const y = startY + (index * (photoHeight + photoSpacing));
                             
-                            // Draw photo border
+                            // Draw photo border (smaller)
                             ctx.fillStyle = '#d4b895';
-                            ctx.fillRect(18, y - 3, photoWidth + 6, photoHeight + 6);
+                            ctx.fillRect(14, y - 2, photoWidth + 4, photoHeight + 4);
                             
                             // Draw the actual captured photo
-                            ctx.drawImage(img, 20, y, photoWidth, photoHeight);
+                            ctx.drawImage(img, 15, y, photoWidth, photoHeight);
                             
                             photosProcessed++;
                             console.log(`📸 Added photo ${index + 1} to strip (filter: ${photoData.filter})`);
                             
-                            // When all photos are processed, return HIGH QUALITY image
+                            // When all photos are processed, return the final image
                             if (photosProcessed === Math.min(photos.length, 3)) {
-                                console.log('📸 Photo strip creation complete - HIGH QUALITY MODE');
-                                // MAXIMUM quality - will likely exceed 50KB
-                                const finalImage = canvas.toDataURL('image/jpeg', 0.8); // 80% quality!
-                                console.log('📸 Final photo strip size:', finalImage.length, 'characters', '≈', Math.round(finalImage.length * 0.75 / 1024), 'KB');
+                                console.log('📸 Photo strip creation complete');
+                                // Convert to very low quality JPEG for email size limits
+                                const finalImage = canvas.toDataURL('image/jpeg', 0.2); // Only 20% quality!
+                                console.log('📸 Final photo strip size:', finalImage.length, 'characters');
                                 
-                                // Check if it's too large for email and warn user
-                                if (finalImage.length > 70000) {
-                                    console.log('⚠️ HIGH QUALITY: Image is', Math.round(finalImage.length * 0.75 / 1024), 'KB - may exceed email limits');
-                                    showStatusMessage(`⚠️ High quality image created (${Math.round(finalImage.length * 0.75 / 1024)}KB) - trying to send...`, 'info');
+                                // Double check size and reduce further if needed
+                                if (finalImage.length > 65000) { // If still too large
+                                    console.log('📸 Still too large, reducing quality further...');
+                                    const verySmallImage = canvas.toDataURL('image/jpeg', 0.1); // 10% quality
+                                    resolve(verySmallImage);
+                                } else {
+                                    resolve(finalImage);
                                 }
-                                
-                                resolve(finalImage);
                             }
                         };
                         
@@ -1257,9 +1258,13 @@
                             
                             // Continue even if some photos fail
                             if (photosProcessed === Math.min(photos.length, 3)) {
-                                const finalImage = canvas.toDataURL('image/jpeg', 0.8);
-                                console.log('📸 Backup image created - HIGH QUALITY');
-                                resolve(finalImage);
+                                const finalImage = canvas.toDataURL('image/jpeg', 0.2);
+                                if (finalImage.length > 65000) {
+                                    const verySmallImage = canvas.toDataURL('image/jpeg', 0.1);
+                                    resolve(verySmallImage);
+                                } else {
+                                    resolve(finalImage);
+                                }
                             }
                         };
                         
@@ -1269,7 +1274,7 @@
                     
                     // If no photos to process, return template
                     if (photos.length === 0) {
-                        const finalImage = canvas.toDataURL('image/jpeg', 0.4);
+                        const finalImage = canvas.toDataURL('image/jpeg', 0.2);
                         resolve(finalImage);
                     }
                     
