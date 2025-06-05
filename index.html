@@ -266,11 +266,16 @@
                 inset 0 0 25px rgba(61, 40, 23, 0.3);
         }
 
-        .camera-screen.large {
-            width: 1000px;
-            height: 750px;
-            border: 25px solid #3d2817;
-        }
+        /* UPDATED: Much bigger camera frame during countdown */
+.camera-screen.large {
+    width: 1200px;      /* Increased from 1000px */
+    height: 900px;      /* Increased from 750px */
+    border: 30px solid #3d2817;  /* Increased from 25px */
+    border-radius: 40px;  /* Increased from default */
+    box-shadow: 
+        0 30px 70px rgba(61, 40, 23, 0.7),      /* Enhanced shadow */
+        inset 0 0 35px rgba(61, 40, 23, 0.4);   /* Enhanced inner shadow */
+}
 
         #video, #captureVideo {
             width: 100%;
@@ -323,6 +328,7 @@
             left: 100%;
         }
 
+        
         .filter-btn.active {
             background: linear-gradient(135deg, #d4b895 0%, #c9a876 50%, #b8a082 100%);
             box-shadow: inset 0 3px 10px rgba(61, 40, 23, 0.2);
@@ -701,7 +707,7 @@
             .twenty-second { font-size: 235px; }
             .bday { font-size: 235px; letter-spacing: 50px; }
             .camera-screen { width: 650px; height: 450px; }
-            .camera-screen.large { width: 750px; height: 550px; }
+            .camera-screen.large { width: 900px; height: 650px; }
             .countdown { font-size: 12rem; }
             .elegant-btn { font-size: 3.5rem; padding: 35px 85px; }
         }
@@ -711,7 +717,7 @@
             .twenty-second { font-size: 155px; }
             .bday { font-size: 155px; letter-spacing: 35px; }
             .camera-screen { width: 600px; height: 400px; }
-            .camera-screen.large { width: 700px; height: 500px; }
+            .camera-screen.large { width: 850px; height: 600px; }
             .countdown { font-size: 10rem; }
             .elegant-btn { font-size: 3rem; padding: 30px 70px; }
             .strip-container { flex-direction: row; gap: 50px; }
@@ -722,7 +728,7 @@
             .twenty-second { font-size: 215px; }
             .bday { font-size: 215px; letter-spacing: 45px; }
             .camera-screen { width: 600px; height: 420px; }
-            .camera-screen.large { width: 750px; height: 550px; }
+            .camera-screen.large { width: 900px; height: 650px; }
             .countdown { font-size: 12rem; }
             .elegant-btn { font-size: 3.5rem; padding: 35px 85px; }
             .filter-btn { font-size: 1.8rem; padding: 15px 35px; }
@@ -733,7 +739,7 @@
             .twenty-second { font-size: 135px; }
             .bday { font-size: 135px; letter-spacing: 30px; }
             .camera-screen { width: 500px; height: 350px; }
-            .camera-screen.large { width: 600px; height: 450px; }
+            .camera-screen.large { width: 700px; height: 500px; }
             .countdown { font-size: 10rem; }
             .elegant-btn { font-size: 3rem; padding: 30px 65px; }
             .strip-container { flex-direction: column; gap: 40px; }
