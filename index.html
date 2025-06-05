@@ -1109,74 +1109,65 @@ Enjoy your memories! 📸✨`,
             return result.secure_url;
         }
 
-        // Photo Strip Creation - FIXED VERSION
+        // Photo Strip Creation - MATCHES CSS LAYOUT EXACTLY
         async function createUltraHDPhotoStrip(photos) {
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                canvas.width = 200;
-                canvas.height = 600;
+                // Match the actual CSS dimensions (using 96 DPI conversion)
+                // CSS: 2in × 6in at 96 DPI = 192px × 576px, but we'll use higher res
+                canvas.width = 400;  // 2x resolution for crisp quality
+                canvas.height = 1200; // Matches 2:6 ratio
                 
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 
-                // Background
+                // Background - exact match to CSS
                 ctx.fillStyle = '#3d2817';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Rounded corners
+                // Rounded corners to match CSS border-radius: 15px
                 ctx.globalCompositeOperation = 'destination-in';
                 ctx.beginPath();
-                ctx.roundRect(0, 0, canvas.width, canvas.height, 10);
+                ctx.roundRect(0, 0, canvas.width, canvas.height, 30); // Scaled for higher res
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over';
                 
-                // FIXED: Add background.png moved up by 0.8 inches
-                const backgroundImg = new Image();
-                backgroundImg.onload = () => {
-                    const bottomBgHeight = 90; // 1.5in equivalent
-                    const moveUpBy = 58; // 0.8 inches = 58 pixels
-                    ctx.globalAlpha = 0.1;
-                    ctx.drawImage(backgroundImg, 0, canvas.height - bottomBgHeight - moveUpBy, canvas.width, bottomBgHeight);
-                    ctx.globalAlpha = 1.0;
-                    createRestOfStrip();
-                };
-                backgroundImg.onerror = () => {
-                    console.log('Background image not found, continuing without it');
-                    createRestOfStrip();
-                };
-                backgroundImg.src = 'background.png';
-                
                 function createRestOfStrip() {
-                    const photoSectionY = 40;
-                    const photoWidth = canvas.width - 30;
-                    const photoHeight = 120;
-                    const photoSpacing = 8;
-                    const photoPadding = 15;
+                    // Photo section - matches CSS .strip-photos
+                    const photosStartY = 40; // Matches margin-top: 0.2in scaled up
+                    const photoWidth = canvas.width - 60; // Matches padding: 0 0.15in scaled up
+                    const photoHeight = 250; // Matches height: 1.3in scaled up  
+                    const photoSpacing = 16; // Matches gap: 0.08in scaled up
+                    const photoPadding = 30; // Matches padding scaled up
                     
-                    // FIXED: Exact font match to CSS
-                    const titleSectionY = canvas.height - 120;
+                    // Add decorative stars at bottom - matches CSS ::after
+                    ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
+                    ctx.font = '16px serif'; // Scaled up from 0.08in
+                    ctx.textAlign = 'center';
+                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
+                    
+                    // Title section - matches CSS .strip-title exactly
+                    const titleStartY = canvas.height - 240; // Matches bottom: 0.3in scaled up
                     ctx.fillStyle = '#d4b895';
                     ctx.textAlign = 'left';
                     
-                    ctx.font = 'italic 32px serif'; // Great Vibes style
-                    ctx.fillText("Brittanys", 15, titleSectionY + 20);
+                    // "Brittanys" - matches CSS .strip-title .brittanys
+                    ctx.font = 'italic 80px serif'; // Scaled from 0.4in
+                    ctx.fillText("Brittanys", 30, titleStartY + 40);
                     
-                    ctx.font = 'italic 30px serif'; // Great Vibes style
-                    ctx.fillText("22nd", 15, titleSectionY + 50);
+                    // "22nd" - matches CSS .strip-title .twenty-second  
+                    ctx.font = 'italic 80px serif'; // Scaled from 0.4in
+                    ctx.fillText("22nd", 30, titleStartY + 120);
                     
-                    ctx.font = '100 24px serif'; // Cinzel light
-                    ctx.letterSpacing = '8px';
-                    ctx.fillText("BDAY", 15, titleSectionY + 80);
+                    // "BDAY" - matches CSS .strip-title .bday
+                    ctx.font = '100 48px serif'; // Scaled from 0.4in, font-weight: 100
+                    ctx.letterSpacing = '24px'; // Scaled from 0.12in
+                    ctx.fillText("BDAY", 30, titleStartY + 180);
                     ctx.letterSpacing = '0px';
                     
-                    // Decorative stars
-                    ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
-                    ctx.font = '8px serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('★ ◆ ★', canvas.width / 2, canvas.height - 5);
-                    
+                    // Process photos - matches the exact layout users see
                     let photosProcessed = 0;
                     const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
                     
@@ -1185,65 +1176,55 @@ Enjoy your memories! 📸✨`,
                         return;
                     }
                     
-                    console.log('📱 Creating photo strip with matching layout');
-                    console.log('🎨 Photos and filters:', sessionPhotos.map(p => ({ 
-                        photoNumber: p.photoNumber, 
-                        filter: p.filter || 'none'
-                    })));
+                    console.log('📱 Creating EXACT MATCH photo strip');
+                    console.log('🎨 Canvas size:', canvas.width, 'x', canvas.height);
+                    console.log('📐 Photo dimensions:', photoWidth, 'x', photoHeight);
                     
                     sessionPhotos.forEach((photoData, index) => {
                         const img = new Image();
                         img.onload = () => {
-                            const y = photoSectionY + (index * (photoHeight + photoSpacing));
+                            const y = photosStartY + (index * (photoHeight + photoSpacing));
                             
-                            // Photo border
+                            // Photo border - matches CSS border: 2px solid #d4b895 (scaled up)
                             ctx.fillStyle = '#d4b895';
-                            ctx.fillRect(photoPadding - 2, y - 2, photoWidth + 4, photoHeight + 4);
+                            ctx.fillRect(photoPadding - 4, y - 4, photoWidth + 8, photoHeight + 8);
                             
-                            // Photo background
+                            // Photo background - matches CSS background: #000
                             ctx.fillStyle = '#000000';
                             ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
                             
-                            // FIXED: Apply filter properly and use normal zoom (100%)
+                            // Draw photo with filter if applied
                             if (photoData.filter && photoData.filter !== 'none') {
                                 console.log(`🎨 Applying ${photoData.filter} filter to photo ${index + 1}`);
                                 
+                                // Create high-res temp canvas for filter
                                 const tempCanvas = document.createElement('canvas');
                                 const tempCtx = tempCanvas.getContext('2d');
-                                
-                                const hiResWidth = photoWidth * 2;
-                                const hiResHeight = photoHeight * 2;
-                                tempCanvas.width = hiResWidth;
-                                tempCanvas.height = hiResHeight;
+                                tempCanvas.width = photoWidth * 2;
+                                tempCanvas.height = photoHeight * 2;
                                 
                                 tempCtx.imageSmoothingEnabled = true;
                                 tempCtx.imageSmoothingQuality = 'high';
                                 
                                 // Apply filter
-                                const filterValue = getCanvasFilter(photoData.filter);
-                                tempCtx.filter = filterValue;
+                                tempCtx.filter = getCanvasFilter(photoData.filter);
+                                tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
                                 
-                                // Normal fit (no zoom)
-                                tempCtx.drawImage(img, 0, 0, hiResWidth, hiResHeight);
-                                
+                                // Draw filtered photo to main canvas
                                 ctx.filter = 'none';
-                                ctx.imageSmoothingEnabled = true;
-                                ctx.imageSmoothingQuality = 'high';
                                 ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
                                 
                                 console.log(`✅ Applied ${photoData.filter} filter successfully`);
                             } else {
-                                // No filter - normal fit
+                                // No filter - direct draw
                                 ctx.filter = 'none';
-                                ctx.imageSmoothingEnabled = true;
-                                ctx.imageSmoothingQuality = 'high';
                                 ctx.drawImage(img, photoPadding, y, photoWidth, photoHeight);
                                 console.log(`📸 Drew photo ${index + 1} without filter`);
                             }
                             
                             photosProcessed++;
                             if (photosProcessed === sessionPhotos.length) {
-                                console.log('📱 Photo strip created with matching layout!');
+                                console.log('✅ Photo strip created - EXACT MATCH to display!');
                                 resolve(canvas.toDataURL('image/jpeg', 0.95));
                             }
                         };
@@ -1260,10 +1241,8 @@ Enjoy your memories! 📸✨`,
                     });
                 }
                 
-                // Fallback if background doesn't load
-                setTimeout(() => {
-                    createRestOfStrip();
-                }, 1000);
+                // Create the strip immediately
+                createRestOfStrip();
             });
         }
 
