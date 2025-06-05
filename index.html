@@ -1422,83 +1422,127 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             }
         }
 
-        // ===== ULTRA HD PHOTO STRIP CREATION =====
+        // ===== ULTRA HD PHOTO STRIP CREATION - EXACT MATCH =====
         async function createUltraHDPhotoStrip(photos) {
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // MASSIVE RESOLUTION - No limits!
-                canvas.width = 1600;
-                canvas.height = 4800;
+                // iPhone-friendly dimensions but high resolution for quality
+                canvas.width = 800;  // Smaller width for iPhone viewing
+                canvas.height = 2400; // Maintains proper ratio
                 
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 
-                // Background
+                // EXACT BACKGROUND MATCH - Dark brown like the website
                 ctx.fillStyle = '#3d2817';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Rounded corners
+                // Rounded corners to match website exactly
                 ctx.globalCompositeOperation = 'destination-in';
                 ctx.beginPath();
-                ctx.roundRect(0, 0, canvas.width, canvas.height, 80);
+                ctx.roundRect(0, 0, canvas.width, canvas.height, 40);
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over';
                 
-                // Title section
-                const titleY = canvas.height - 800;
+                // Background pattern/texture (subtle)
+                ctx.fillStyle = 'rgba(139, 115, 85, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, 160); // Top background section
+                
+                // PHOTO SECTION - Matches website layout exactly
+                const photoSectionY = 160;
+                const photoSectionHeight = 1680; // 4.2in equivalent
+                const photoWidth = canvas.width - 120; // Padding like website
+                const photoHeight = 480; // 1.3in equivalent  
+                const photoSpacing = 32; // 0.08in equivalent
+                const photoPadding = 60; // 0.15in equivalent
+                
+                // TITLE SECTION - Exact position match
+                const titleSectionY = canvas.height - 480; // Bottom area
                 ctx.fillStyle = '#d4b895';
                 ctx.textAlign = 'left';
                 
-                ctx.font = 'italic bold 128px serif';
-                ctx.fillText("Brittanys", 120, titleY + 80);
+                // EXACT FONT STYLING FROM WEBSITE
+                // "Brittanys" - Dancing Script
+                ctx.font = 'italic 160px serif'; // Approximating Dancing Script
+                ctx.fillText("Brittanys", 60, titleSectionY + 80);
                 
-                ctx.font = 'italic bold 112px serif';
-                ctx.fillText("22nd", 120, titleY + 224);
+                // "22nd" - Dancing Script  
+                ctx.font = 'italic 140px serif';
+                ctx.fillText("22nd", 60, titleSectionY + 200);
                 
-                ctx.font = 'bold 104px serif';
-                ctx.fillText("BDAY", 120, titleY + 360);
+                // "BDAY" - Cinzel
+                ctx.font = 'bold 130px serif';
+                ctx.letterSpacing = '8px';
+                ctx.fillText("BDAY", 60, titleSectionY + 320);
                 
-                // Date
-                ctx.font = '64px serif';
-                ctx.fillStyle = 'rgba(212, 184, 149, 0.7)';
-                ctx.textAlign = 'center';
-                ctx.fillText(new Date().toLocaleDateString(), canvas.width / 2, titleY + 520);
-                
-                // Stars
+                // Decorative stars at bottom - exact match
                 ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
-                ctx.font = '64px serif';
-                ctx.fillText('★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 120);
+                ctx.font = '32px serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
                 
-                // Ultra HD photos
-                const photoWidth = canvas.width - 240;
-                const photoHeight = 960;
-                const startY = 200;
-                const photoSpacing = 80;
-                
+                // Process photos with filters applied
                 let photosProcessed = 0;
+                const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
                 
-                photos.forEach((photoData, index) => {
-                    if (index >= 3) return;
-                    
+                if (sessionPhotos.length === 0) {
+                    resolve(canvas.toDataURL('image/jpeg', 0.95));
+                    return;
+                }
+                
+                console.log('🎨 Creating EXACT photo strip match with', sessionPhotos.length, 'photos');
+                console.log('📸 Photos and their filters:', sessionPhotos.map(p => ({ 
+                    photoNumber: p.photoNumber, 
+                    filter: p.filter || 'none',
+                    sessionId: p.sessionId
+                })));
+                
+                sessionPhotos.forEach((photoData, index) => {
                     const img = new Image();
                     img.onload = () => {
-                        const y = startY + (index * (photoHeight + photoSpacing));
+                        const y = photoSectionY + (index * (photoHeight + photoSpacing));
                         
-                        // Photo border
+                        // Photo border/frame - exact match to website
                         ctx.fillStyle = '#d4b895';
-                        ctx.fillRect(112, y - 16, photoWidth + 32, photoHeight + 32);
+                        ctx.fillRect(photoPadding - 8, y - 8, photoWidth + 16, photoHeight + 16);
                         
-                        // Draw ultra HD photo
-                        ctx.drawImage(img, 120, y, photoWidth, photoHeight);
+                        // Black background for photo area
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
+                        
+                        // Apply the SAME filter that was used when taking the photo
+                        if (photoData.filter && photoData.filter !== 'none') {
+                            const filterValue = getCanvasFilter(photoData.filter);
+                            ctx.filter = filterValue;
+                            console.log(`🎨 Applying ${photoData.filter} filter to photo ${index + 1}:`, filterValue);
+                        } else {
+                            ctx.filter = 'none';
+                        }
+                        
+                        // Draw photo with proper scaling and centering
+                        ctx.drawImage(img, photoPadding, y, photoWidth, photoHeight);
+                        
+                        // Reset filter for next photo
+                        ctx.filter = 'none';
                         
                         photosProcessed++;
-                        if (photosProcessed === Math.min(photos.length, 3)) {
-                            // 95% quality - perfect for printing!
+                        if (photosProcessed === sessionPhotos.length) {
+                            console.log('🎉 EXACT photo strip created with all filters applied!');
+                            // High quality for download, but iPhone-friendly size
                             resolve(canvas.toDataURL('image/jpeg', 0.95));
                         }
                     };
+                    
+                    img.onerror = () => {
+                        console.error('Failed to load photo', index);
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            resolve(canvas.toDataURL('image/jpeg', 0.95));
+                        }
+                    };
+                    
                     img.src = photoData.data;
                 });
             });
