@@ -799,13 +799,14 @@
         <div class="flash-overlay"></div>
     </div>
 
-    <canvas id="canvas"></canvas>
-
     <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     
     <!-- html2canvas for screenshots -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <canvas id="canvas"></canvas>
+
     <script type="text/javascript">
         // Initialize EmailJS
         (function() {
@@ -816,6 +817,8 @@
     </script>
 
     <script>
+        console.log('🚀 Script loading...');
+        
         // Global Variables
         let currentFilter = 'none';
         let capturedPhotos = [];
@@ -831,16 +834,49 @@
         const beepSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAAA==');
         const cameraSound = new Audio('data:audio/wav;base64,UklGRnIGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU4GAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAA==');
 
+        console.log('🔧 Variables initialized');
+
+        // DEFINE ALL FUNCTIONS FIRST
+        
+        // Photo Session Functions
+        function startPhotoSession() {
+            console.log('🎬 startPhotoSession called!');
+            sessionId = Date.now();
+            console.log('🎬 Starting new photo session:', sessionId);
+            
+            document.getElementById('startPage').classList.remove('active');
+            document.getElementById('filterPage').classList.add('active');
+            
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: 1920, 
+                    height: 1080,
+                    facingMode: 'user'
+                } 
+            }).then(function(mediaStream) {
+                stream = mediaStream;
+                document.getElementById('video').srcObject = stream;
+                document.getElementById('captureVideo').srcObject = stream;
+                console.log('✅ Camera access granted');
+            }).catch(function(error) {
+                console.error('❌ Error accessing camera:', error);
+                alert('Unable to access camera. Please ensure camera permissions are granted.');
+            });
+        }
+
         // Utility Functions
         function showStatusMessage(message, type = 'info') {
+            console.log('📢 Status:', message);
             const statusDiv = document.getElementById('statusMessage');
-            statusDiv.className = `status-message status-${type}`;
-            statusDiv.textContent = message;
-            statusDiv.style.display = 'block';
-            
-            setTimeout(() => {
-                statusDiv.style.display = 'none';
-            }, 5000);
+            if (statusDiv) {
+                statusDiv.className = `status-message status-${type}`;
+                statusDiv.textContent = message;
+                statusDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
         }
 
         function getCanvasFilter(filterType) {
@@ -852,30 +888,6 @@
                 case 'sunset': return 'sepia(0.7) contrast(1.3) brightness(1.1) saturate(1.4) hue-rotate(10deg)';
                 case 'retro': return 'contrast(1.5) saturate(1.2) sepia(0.3) hue-rotate(-10deg)';
                 default: return 'none';
-            }
-        }
-
-        // Photo Session Functions
-        async function startPhotoSession() {
-            sessionId = Date.now();
-            console.log('🎬 Starting new photo session:', sessionId);
-            
-            document.getElementById('startPage').classList.remove('active');
-            document.getElementById('filterPage').classList.add('active');
-            
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        width: 1920, 
-                        height: 1080,
-                        facingMode: 'user'
-                    } 
-                });
-                document.getElementById('video').srcObject = stream;
-                document.getElementById('captureVideo').srcObject = stream;
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                alert('Unable to access camera. Please ensure camera permissions are granted.');
             }
         }
 
@@ -1810,16 +1822,61 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             document.querySelector('.filter-btn').classList.add('active');
         }
 
-        // Make functions globally available
+        // Make functions globally available - FINAL SETUP
+        console.log('🔧 Making functions global...');
+        window.startPhotoSession = startPhotoSession;
+        window.setFilter = setFilter;
+        window.startCountdown = startCountdown;
         window.testEmailTemplate = testEmailTemplate;
         window.testCloudinaryConnection = testCloudinaryConnection;
         window.uploadToCloudinaryAndEmail = uploadToCloudinaryAndEmail;
         window.sendTinyPreview = sendTinyPreview;
         window.downloadUltraHDPhotoStrip = downloadUltraHDPhotoStrip;
-        window.startPhotoSession = startPhotoSession;
-        window.setFilter = setFilter;
-        window.startCountdown = startCountdown;
         window.restartSession = restartSession;
+        
+        console.log('✅ All functions made global');
+        
+        // Test the start button immediately
+        console.log('🧪 Testing start button...');
+        
+        // Wait for DOM to be ready, then test
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+        
+        function initializeApp() {
+            console.log('🎬 Initializing app...');
+            
+            // Find the start button
+            const startButton = document.querySelector('button[onclick="startPhotoSession()"]');
+            console.log('🔍 Start button found:', startButton);
+            
+            if (startButton) {
+                console.log('✅ Start button exists with onclick');
+                
+                // Add additional event listener as backup
+                startButton.addEventListener('click', function(e) {
+                    console.log('🚀 Start button clicked via event listener!');
+                    e.preventDefault();
+                    startPhotoSession();
+                });
+                
+                // Test if function is callable
+                console.log('🧪 Testing if startPhotoSession is callable...');
+                if (typeof window.startPhotoSession === 'function') {
+                    console.log('✅ startPhotoSession is a function and callable');
+                } else {
+                    console.error('❌ startPhotoSession is not a function');
+                }
+                
+            } else {
+                console.error('❌ Start button not found');
+            }
+            
+            console.log('🎉 App initialization complete!');
+        }
     </script>
 </body>
 </html>
