@@ -750,7 +750,7 @@
                 <div class="twenty-second">22nd</div>
                 <div class="bday">BDAY</div>
             </div>
-            <button class="elegant-btn" onclick="startPhotoSession()">Start Photo Booth</button>
+            <button class="elegant-btn" onclick="startPhotoSession()">Start</button>
         </div>
         <div class="flash-overlay" id="flashOverlay"></div>
     </div>
@@ -861,8 +861,6 @@
         }
 
         async function startPhotoSession() {
-            console.log('🎬 Start button clicked!'); // Debug log
-            
             // Generate new session ID
             sessionId = Date.now();
             console.log('🎬 Starting new photo session:', sessionId);
@@ -871,7 +869,6 @@
             document.getElementById('filterPage').classList.add('active');
             
             try {
-                console.log('📷 Requesting camera access...');
                 stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         width: 1920, 
@@ -881,13 +878,9 @@
                 });
                 document.getElementById('video').srcObject = stream;
                 document.getElementById('captureVideo').srcObject = stream;
-                console.log('✅ Camera access granted!');
             } catch (error) {
-                console.error('❌ Error accessing camera:', error);
-                alert('Unable to access camera. Please ensure camera permissions are granted and refresh the page.');
-                // Go back to start page if camera fails
-                document.getElementById('filterPage').classList.remove('active');
-                document.getElementById('startPage').classList.add('active');
+                console.error('Error accessing camera:', error);
+                alert('Unable to access camera. Please ensure camera permissions are granted.');
             }
         }
 
@@ -1063,238 +1056,8 @@
             }
         }
 
-        // CLOUD STORAGE + EMAIL LINK FUNCTION (BEST QUALITY OPTION)
-        async function sendPhotosViaCloudLink() {
-            const emailInput = document.getElementById('emailInput');
-            const email = emailInput.value.trim();
-            
-            if (!email) {
-                showStatusMessage('Please enter an email address', 'error');
-                return;
-            }
-
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                showStatusMessage('Please enter a valid email address', 'error');
-                return;
-            }
-
-            if (!capturedPhotos || capturedPhotos.length === 0) {
-                showStatusMessage('No photos to send. Take some photos first!', 'error');
-                return;
-            }
-
-            const sessionPhotos = capturedPhotos.filter(photo => photo.sessionId === sessionId);
-            if (sessionPhotos.length === 0) {
-                showStatusMessage('No photos found for current session. Please take new photos.', 'error');
-                return;
-            }
-
-            if (typeof emailjs === 'undefined') {
-                showStatusMessage('❌ Email service not loaded! Please refresh the page.', 'error');
-                return;
-            }
-
-            console.log('🚀 Creating MAXIMUM QUALITY photo strip for cloud upload');
-            
-            const button = event.target;
-            const originalText = button.textContent;
-            button.disabled = true;
-            button.textContent = 'Creating Max Quality...';
-            
-            showStatusMessage('Creating maximum quality photo strip...', 'info');
-            
-            try {
-                // Create MAXIMUM quality photo strip
-                const photoStripImage = await createPhotoStripFromCapturedPhotos(sessionPhotos);
-                const sizeKB = Math.round(photoStripImage.length * 0.75 / 1024);
-                
-                button.textContent = 'Uploading to Cloud...';
-                showStatusMessage(`Uploading ${sizeKB}KB high-quality image to cloud storage...`, 'info');
-                
-                // Upload to cloud storage (with multiple fallback services)
-                const cloudUrl = await uploadToCloud(photoStripImage);
-                
-                button.textContent = 'Sending Email...';
-                showStatusMessage('Sending email with download link...', 'info');
-                
-                // Send email with cloud download link
-                const result = await emailjs.send(
-                    'service_9n5lgms',
-                    'template_js58xgg',
-                    {
-                        to_email: email,
-                        to_name: email.split('@')[0],
-                        from_name: "Brittany's 22nd Birthday Party",
-                        subject: `🎉 Your HIGH QUALITY Photo Strip from Brittany's 22nd Birthday!`,
-                        message: `Your maximum quality photo strip is ready! Download it here: ${cloudUrl}`,
-                        photo_strip: '', // Empty since we're using cloud link
-                        download_link: cloudUrl,
-                        photo1: '',
-                        photo2: '',
-                        photo3: ''
-                    }
-                );
-                
-                console.log('✅ Email with cloud link sent successfully to:', email);
-                showStatusMessage(`🎉 High-quality photo strip link sent to ${email}! Check your inbox for the download link!`, 'success');
-                
-                emailInput.value = '';
-                
-            } catch (error) {
-                console.error('❌ Cloud upload/email failed:', error);
-                
-                // Show the user what went wrong
-                if (error.message.includes('All cloud services failed')) {
-                    showStatusMessage('❌ Cloud upload failed. Offering direct download instead...', 'error');
-                    
-                    // Offer direct download as alternative
-                    button.textContent = 'Download Directly';
-                    button.onclick = () => downloadPhotoStripDirectly(photoStripImage);
-                    showStatusMessage('☁️ Cloud failed - click button to download directly to your device!', 'info');
-                    
-                } else {
-                    // Fallback to direct email if cloud fails
-                    showStatusMessage('Cloud upload failed, trying direct email...', 'info');
-                    await sendPhotosViaEmailDirect();
-                }
-                
-            } finally {
-                if (button.textContent !== 'Download Directly') {
-                    button.disabled = false;
-                    button.textContent = originalText;
-                }
-            }
-        }
-
-        // Direct download function (no cloud, no email limits)
-        function downloadPhotoStripDirectly(imageData) {
-            try {
-                console.log('💾 Starting direct download...');
-                
-                // Create download link
-                const link = document.createElement('a');
-                link.href = imageData;
-                link.download = `Brittanys_22nd_Birthday_PhotoStrip_${sessionId}.jpg`;
-                
-                // Trigger download
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                showStatusMessage('✅ Photo strip downloaded to your device! Check your Downloads folder.', 'success');
-                console.log('✅ Direct download successful');
-                
-                // Reset button
-                const button = document.querySelector('.strip-page-btn');
-                button.textContent = 'Email My Photos';
-                button.onclick = sendPhotosViaCloudLink;
-                button.disabled = false;
-                
-            } catch (error) {
-                console.error('❌ Direct download failed:', error);
-                showStatusMessage('❌ Download failed. Please try again.', 'error');
-            }
-        }
-        }
-
-        // Upload to ImgBB (free image hosting service) - FIXED VERSION
-        async function uploadToImgBB(imageData) {
-            try {
-                console.log('🌐 Starting ImgBB upload...');
-                
-                // Convert base64 to blob properly
-                const base64Data = imageData.split(',')[1];
-                
-                const formData = new FormData();
-                formData.append('image', base64Data);
-                
-                // Using a working ImgBB API key
-                const response = await fetch('https://api.imgbb.com/1/upload?key=bdf1c2af56f0d59fd7b9db9ba26401f4', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    console.log('✅ Image uploaded to ImgBB successfully:', result.data.url);
-                    return result.data.url;
-                } else {
-                    throw new Error('ImgBB API returned error: ' + (result.error?.message || 'Unknown error'));
-                }
-                
-            } catch (error) {
-                console.error('❌ ImgBB upload failed:', error);
-                throw error;
-            }
-        }
-
-        // Alternative: Upload to Imgur (backup cloud service)
-        async function uploadToImgur(imageData) {
-            try {
-                console.log('🌐 Trying Imgur as backup...');
-                
-                const base64Data = imageData.split(',')[1];
-                
-                const response = await fetch('https://api.imgur.com/3/image', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Client-ID 546c25a59c58ad7',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        image: base64Data,
-                        type: 'base64'
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    console.log('✅ Image uploaded to Imgur successfully:', result.data.link);
-                    return result.data.link;
-                } else {
-                    throw new Error('Imgur upload failed');
-                }
-                
-            } catch (error) {
-                console.error('❌ Imgur upload failed:', error);
-                throw error;
-            }
-        }
-
-        // Multiple cloud services with fallbacks
-        async function uploadToCloud(imageData) {
-            const services = [
-                { name: 'ImgBB', func: uploadToImgBB },
-                { name: 'Imgur', func: uploadToImgur }
-            ];
-            
-            for (const service of services) {
-                try {
-                    console.log(`🌐 Trying ${service.name}...`);
-                    showStatusMessage(`Uploading to ${service.name}...`, 'info');
-                    
-                    const url = await service.func(imageData);
-                    console.log(`✅ ${service.name} upload successful!`);
-                    return url;
-                    
-                } catch (error) {
-                    console.warn(`❌ ${service.name} failed:`, error);
-                    continue;
-                }
-            }
-            
-            throw new Error('All cloud services failed');
-        }
-
-        // Fallback function for direct email (original method)
-        async function sendPhotosViaEmailDirect() {
+        // COMPLETELY REWRITTEN EMAIL FUNCTION - Now uses actual photo data
+        async function sendPhotosViaEmail() {
             const emailInput = document.getElementById('emailInput');
             const email = emailInput.value.trim();
             
@@ -1402,9 +1165,9 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // Set canvas size (MAXIMUM QUALITY - no email size limits!)
-                    canvas.width = 600;  // Even larger for maximum quality
-                    canvas.height = 1800; // Full high resolution
+                    // Set canvas size (HIGH QUALITY - may exceed email limits)
+                    canvas.width = 500;  // Much larger for high quality
+                    canvas.height = 1500; // Full resolution
                     
                     // Fill background (dark brown like the photo strip)
                     ctx.fillStyle = '#3d2817';
@@ -1445,12 +1208,12 @@
                     ctx.textAlign = 'center';
                     ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
                     
-                    // Draw the actual captured photos (MAXIMUM QUALITY)
+                    // Draw the actual captured photos (HIGH QUALITY)
                     let photosProcessed = 0;
-                    const photoWidth = canvas.width - 80; // Perfect margins
-                    const photoHeight = 400; // Large photos for maximum quality
-                    const startY = 60;
-                    const photoSpacing = 30;
+                    const photoWidth = canvas.width - 60; // Better margins
+                    const photoHeight = 300; // Much larger photos for quality
+                    const startY = 50;
+                    const photoSpacing = 25;
                     
                     // Process each photo
                     photos.forEach((photoData, index) => {
@@ -1471,16 +1234,18 @@
                             photosProcessed++;
                             console.log(`📸 Added photo ${index + 1} to strip (filter: ${photoData.filter})`);
                             
-                            // When all photos are processed, return MAXIMUM QUALITY image
+                            // When all photos are processed, return HIGH QUALITY image
                             if (photosProcessed === Math.min(photos.length, 3)) {
-                                console.log('📸 Photo strip creation complete - MAXIMUM QUALITY MODE');
-                                // MAXIMUM quality - no size limits with cloud storage
-                                const finalImage = canvas.toDataURL('image/jpeg', 0.95); // 95% quality!
-                                const sizeKB = Math.round(finalImage.length * 0.75 / 1024);
-                                console.log('📸 Final photo strip size:', finalImage.length, 'characters', '≈', sizeKB, 'KB');
+                                console.log('📸 Photo strip creation complete - HIGH QUALITY MODE');
+                                // MAXIMUM quality - will likely exceed 50KB
+                                const finalImage = canvas.toDataURL('image/jpeg', 0.8); // 80% quality!
+                                console.log('📸 Final photo strip size:', finalImage.length, 'characters', '≈', Math.round(finalImage.length * 0.75 / 1024), 'KB');
                                 
-                                console.log('🚀 MAXIMUM QUALITY: Image is', sizeKB, 'KB - using cloud storage for best quality');
-                                showStatusMessage(`🚀 Maximum quality image created (${sizeKB}KB) - uploading to cloud...`, 'info');
+                                // Check if it's too large for email and warn user
+                                if (finalImage.length > 70000) {
+                                    console.log('⚠️ HIGH QUALITY: Image is', Math.round(finalImage.length * 0.75 / 1024), 'KB - may exceed email limits');
+                                    showStatusMessage(`⚠️ High quality image created (${Math.round(finalImage.length * 0.75 / 1024)}KB) - trying to send...`, 'info');
+                                }
                                 
                                 resolve(finalImage);
                             }
@@ -1571,34 +1336,12 @@
             }
         });
 
-        // Test function to ensure JavaScript is working
-        function testButton() {
-            console.log('🧪 Test function called - JavaScript is working!');
-            alert('JavaScript is working! If you see this, the start button should work.');
-        }
-
-        // DOM loaded check
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ DOM loaded, JavaScript ready');
-            
-            // Test that start button exists
-            const startBtn = document.querySelector('.elegant-btn');
-            if (startBtn) {
-                console.log('✅ Start button found:', startBtn);
-            } else {
-                console.error('❌ Start button not found!');
-            }
-        });
-
-        // Make ALL functions available globally for onclick handlers
+        // Make functions available globally for onclick handlers
+        window.sendPhotosViaEmail = sendPhotosViaEmail;
         window.startPhotoSession = startPhotoSession;
         window.setFilter = setFilter;
         window.startCountdown = startCountdown;
-        window.sendPhotosViaEmail = sendPhotosViaCloudLink; // Use cloud method as primary
-        window.sendPhotosViaEmailDirect = sendPhotosViaEmailDirect; // Keep direct as backup
         window.restartSession = restartSession;
-        window.downloadPhotoStripDirectly = downloadPhotoStripDirectly;
-        window.testButton = testButton; // Add test function
     </script>
 </body>
 </html>
