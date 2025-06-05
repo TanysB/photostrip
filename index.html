@@ -1112,56 +1112,53 @@ Enjoy your memories! 📸✨`,
             return result.secure_url;
         }
 
-        // Screenshot-based Photo Strip Creation - IMPROVED VERSION
+        // Screenshot-based Photo Strip Creation - FULL PAGE LAYOUT
         async function createUltraHDPhotoStrip(photos) {
             return new Promise(async (resolve) => {
                 try {
-                    console.log('📸 Attempting to screenshot the photo strip...');
+                    console.log('📸 Taking screenshot of the full strip page layout...');
                     
-                    // Get the photo strip element
-                    const photoStripElement = document.querySelector('.photo-strip');
+                    // Get the entire strip page
+                    const stripPageElement = document.getElementById('stripPage');
                     
-                    if (!photoStripElement) {
-                        console.error('❌ Photo strip element not found');
+                    if (!stripPageElement) {
+                        console.error('❌ Strip page element not found');
                         resolve(await createCanvasFallbackStrip(photos));
                         return;
                     }
                     
-                    // Temporarily hide elements that might interfere
-                    const inputContainer = document.querySelector('.phone-input-container');
+                    // Temporarily hide status messages for cleaner screenshot
                     const statusMsg = document.getElementById('statusMessage');
-                    
-                    const originalInputDisplay = inputContainer.style.display;
                     const originalStatusDisplay = statusMsg.style.display;
-                    
-                    inputContainer.style.display = 'none';
                     statusMsg.style.display = 'none';
                     
                     // Wait a moment for DOM to update
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 200));
                     
-                    console.log('🎯 Targeting photo strip element directly...');
+                    console.log('🎯 Capturing full strip page layout...');
+                    console.log('📐 Page dimensions:', stripPageElement.offsetWidth, 'x', stripPageElement.offsetHeight);
                     
-                    // Capture just the photo strip element
-                    const canvas = await html2canvas(photoStripElement, {
-                        backgroundColor: '#3d2817',
+                    // Capture the entire strip page
+                    const canvas = await html2canvas(stripPageElement, {
+                        backgroundColor: '#d4b895', // Match your background gradient
                         scale: 2, // High resolution
                         useCORS: true,
                         allowTaint: true,
-                        logging: true, // Enable logging for debugging
-                        width: photoStripElement.offsetWidth,
-                        height: photoStripElement.offsetHeight,
+                        logging: true,
+                        width: stripPageElement.offsetWidth,
+                        height: stripPageElement.offsetHeight,
                         scrollX: 0,
                         scrollY: 0,
                         windowWidth: window.innerWidth,
-                        windowHeight: window.innerHeight
+                        windowHeight: window.innerHeight,
+                        removeContainer: false,
+                        foreignObjectRendering: true
                     });
                     
-                    // Restore hidden elements
-                    inputContainer.style.display = originalInputDisplay;
+                    // Restore status message
                     statusMsg.style.display = originalStatusDisplay;
                     
-                    console.log('✅ Screenshot captured successfully!');
+                    console.log('✅ Full page screenshot captured successfully!');
                     console.log(`📐 Screenshot dimensions: ${canvas.width}x${canvas.height}`);
                     
                     // Convert to high-quality JPEG
@@ -1174,9 +1171,7 @@ Enjoy your memories! 📸✨`,
                     
                     // Restore elements if they were hidden
                     try {
-                        const inputContainer = document.querySelector('.phone-input-container');
                         const statusMsg = document.getElementById('statusMessage');
-                        inputContainer.style.display = '';
                         statusMsg.style.display = '';
                     } catch (e) {
                         console.log('Element restoration failed, continuing...');
@@ -1504,41 +1499,57 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             button.textContent = '🔧 Testing...';
             
             try {
-                showStatusMessage('Testing screenshot capability...', 'info');
+                showStatusMessage('Testing full page screenshot capability...', 'info');
                 
-                // Test screenshot first
-                const photoStripElement = document.querySelector('.photo-strip');
-                if (photoStripElement) {
-                    console.log('📸 Testing screenshot of photo strip...');
+                // Test screenshot of the full strip page
+                const stripPageElement = document.getElementById('stripPage');
+                if (stripPageElement) {
+                    console.log('📸 Testing screenshot of full strip page...');
+                    console.log('📐 Page size:', stripPageElement.offsetWidth, 'x', stripPageElement.offsetHeight);
                     
-                    const testCanvas = await html2canvas(photoStripElement, {
-                        backgroundColor: '#3d2817',
+                    // Hide status message temporarily for clean screenshot
+                    const statusMsg = document.getElementById('statusMessage');
+                    statusMsg.style.display = 'none';
+                    
+                    const testCanvas = await html2canvas(stripPageElement, {
+                        backgroundColor: '#d4b895',
                         scale: 1,
                         logging: true,
                         useCORS: true,
-                        allowTaint: true
+                        allowTaint: true,
+                        width: stripPageElement.offsetWidth,
+                        height: stripPageElement.offsetHeight
                     });
                     
-                    console.log('✅ Screenshot test successful!', testCanvas.width, 'x', testCanvas.height);
-                    showStatusMessage('✅ Screenshot test passed!', 'success');
+                    // Restore status message
+                    statusMsg.style.display = 'block';
+                    
+                    console.log('✅ Full page screenshot test successful!', testCanvas.width, 'x', testCanvas.height);
+                    showStatusMessage('✅ Screenshot test passed - capturing full layout!', 'success');
                     
                     // Now test Cloudinary upload
                     setTimeout(async () => {
-                        showStatusMessage('Testing Cloudinary connection...', 'info');
+                        showStatusMessage('Testing Cloudinary upload...', 'info');
                         
                         const testImage = testCanvas.toDataURL('image/jpeg', 0.8);
                         const uploadedUrl = await uploadImageToCloudinary(testImage);
                         
-                        showStatusMessage(`✅ Full test successful! Screenshot + Cloudinary working: ${uploadedUrl.substring(0, 50)}...`, 'success');
+                        showStatusMessage(`✅ Complete test successful! Full page screenshot + Cloudinary: ${uploadedUrl.substring(0, 50)}...`, 'success');
                     }, 1000);
                     
                 } else {
-                    showStatusMessage('❌ Photo strip not found - take photos first!', 'error');
+                    showStatusMessage('❌ Strip page not found - take photos first!', 'error');
                 }
                 
             } catch (error) {
                 console.error('Test failed:', error);
                 showStatusMessage('❌ Test failed: ' + error.message, 'error');
+                
+                // Restore status message if hidden
+                try {
+                    document.getElementById('statusMessage').style.display = 'block';
+                } catch (e) {}
+                
             } finally {
                 button.disabled = false;
                 button.textContent = originalText;
