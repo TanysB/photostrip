@@ -850,7 +850,7 @@
 
         // ✅ ***** CLOUDINARY SETTINGS CONFIGURED ***** ✅
         const CLOUDINARY_CLOUD_NAME = 'dou32nvcj'; // Your actual Cloudinary cloud name
-        const CLOUDINARY_UPLOAD_PRESET = 'brittanys_birthday'; // Your upload preset name
+        const CLOUDINARY_UPLOAD_PRESET = 'brittany_birthday'; // Fixed: matches your actual preset name
 
         // Audio elements
         const beepSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAAA==');
@@ -1527,7 +1527,7 @@
                 let helpMessage = '❌ Cloudinary test failed: ' + error.message + '\n\n';
                 
                 if (error.message.includes('Invalid upload preset')) {
-                    helpMessage += '🔧 FIX: Go to Cloudinary → Settings → Upload → Upload Presets → Make sure "brittanys_birthday" exists and is set to "Unsigned"';
+                    helpMessage += '🔧 FIX: Go to Cloudinary → Settings → Upload → Upload Presets → Make sure "brittany_birthday" exists and is set to "Unsigned"';
                 } else if (error.message.includes('Unauthorized')) {
                     helpMessage += '🔧 FIX: Check that your cloud name "dou32nvcj" is correct in your Cloudinary dashboard';
                 } else if (error.message.includes('unsigned')) {
