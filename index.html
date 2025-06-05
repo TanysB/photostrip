@@ -803,6 +803,9 @@
 
     <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    
+    <!-- html2canvas for screenshots -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script type="text/javascript">
         // Initialize EmailJS
         (function() {
@@ -1109,140 +1112,122 @@ Enjoy your memories! 📸✨`,
             return result.secure_url;
         }
 
-        // Photo Strip Creation - MATCHES CSS LAYOUT EXACTLY
+        // Screenshot-based Photo Strip Creation - PERFECT MATCH
         async function createUltraHDPhotoStrip(photos) {
+            return new Promise(async (resolve) => {
+                try {
+                    console.log('📸 Taking screenshot of actual photo strip display...');
+                    
+                    // Use html2canvas to capture the photo strip page
+                    const stripPageElement = document.getElementById('stripPage');
+                    
+                    // Temporarily hide the right side (email input area) for cleaner crop
+                    const inputContainer = document.querySelector('.phone-input-container');
+                    const originalDisplay = inputContainer.style.display;
+                    inputContainer.style.display = 'none';
+                    
+                    // Also temporarily hide any status messages
+                    const statusMsg = document.getElementById('statusMessage');
+                    const originalStatusDisplay = statusMsg.style.display;
+                    statusMsg.style.display = 'none';
+                    
+                    // Take screenshot of the entire strip page
+                    const canvas = await html2canvas(stripPageElement, {
+                        backgroundColor: null,
+                        scale: 2, // High resolution
+                        useCORS: true,
+                        allowTaint: true,
+                        width: stripPageElement.offsetWidth,
+                        height: stripPageElement.offsetHeight,
+                        x: 0,
+                        y: 0
+                    });
+                    
+                    // Restore the hidden elements
+                    inputContainer.style.display = originalDisplay;
+                    statusMsg.style.display = originalStatusDisplay;
+                    
+                    // Crop to just the photo strip area (left half of the page)
+                    const cropCanvas = document.createElement('canvas');
+                    const cropCtx = cropCanvas.getContext('2d');
+                    
+                    // Calculate crop dimensions - we want just the photo strip
+                    const photoStripElement = document.querySelector('.photo-strip');
+                    const stripRect = photoStripElement.getBoundingClientRect();
+                    const pageRect = stripPageElement.getBoundingClientRect();
+                    
+                    // Calculate relative position and size
+                    const relativeLeft = (stripRect.left - pageRect.left) * 2; // *2 for scale
+                    const relativeTop = (stripRect.top - pageRect.top) * 2;
+                    const stripWidth = stripRect.width * 2; // *2 for scale  
+                    const stripHeight = stripRect.height * 2;
+                    
+                    // Set crop canvas size to just the photo strip
+                    cropCanvas.width = stripWidth;
+                    cropCanvas.height = stripHeight;
+                    
+                    // Draw the cropped section
+                    cropCtx.drawImage(
+                        canvas,
+                        relativeLeft, relativeTop, stripWidth, stripHeight, // Source area
+                        0, 0, stripWidth, stripHeight // Destination area
+                    );
+                    
+                    console.log('✅ Screenshot captured and cropped to photo strip!');
+                    console.log(`📐 Cropped dimensions: ${stripWidth}x${stripHeight}`);
+                    
+                    // Return the cropped photo strip as data URL
+                    resolve(cropCanvas.toDataURL('image/jpeg', 0.95));
+                    
+                } catch (error) {
+                    console.error('❌ Screenshot failed, falling back to canvas method:', error);
+                    
+                    // Fallback to canvas method if screenshot fails
+                    resolve(await createCanvasFallbackStrip(photos));
+                }
+            });
+        }
+        
+        // Fallback canvas method (simplified version of original)
+        async function createCanvasFallbackStrip(photos) {
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // Match the actual CSS dimensions (using 96 DPI conversion)
-                // CSS: 2in × 6in at 96 DPI = 192px × 576px, but we'll use higher res
-                canvas.width = 400;  // 2x resolution for crisp quality
-                canvas.height = 1200; // Matches 2:6 ratio
+                canvas.width = 400;
+                canvas.height = 1200;
                 
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-                
-                // Background - exact match to CSS
                 ctx.fillStyle = '#3d2817';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Rounded corners to match CSS border-radius: 15px
-                ctx.globalCompositeOperation = 'destination-in';
-                ctx.beginPath();
-                ctx.roundRect(0, 0, canvas.width, canvas.height, 30); // Scaled for higher res
-                ctx.fill();
-                ctx.globalCompositeOperation = 'source-over';
+                // Simple fallback layout
+                const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
+                let photosProcessed = 0;
                 
-                function createRestOfStrip() {
-                    // Photo section - matches CSS .strip-photos
-                    const photosStartY = 40; // Matches margin-top: 0.2in scaled up
-                    const photoWidth = canvas.width - 60; // Matches padding: 0 0.15in scaled up
-                    const photoHeight = 250; // Matches height: 1.3in scaled up  
-                    const photoSpacing = 16; // Matches gap: 0.08in scaled up
-                    const photoPadding = 30; // Matches padding scaled up
-                    
-                    // Add decorative stars at bottom - matches CSS ::after
-                    ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
-                    ctx.font = '16px serif'; // Scaled up from 0.08in
-                    ctx.textAlign = 'center';
-                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
-                    
-                    // Title section - matches CSS .strip-title exactly
-                    const titleStartY = canvas.height - 240; // Matches bottom: 0.3in scaled up
-                    ctx.fillStyle = '#d4b895';
-                    ctx.textAlign = 'left';
-                    
-                    // "Brittanys" - matches CSS .strip-title .brittanys
-                    ctx.font = 'italic 80px serif'; // Scaled from 0.4in
-                    ctx.fillText("Brittanys", 30, titleStartY + 40);
-                    
-                    // "22nd" - matches CSS .strip-title .twenty-second  
-                    ctx.font = 'italic 80px serif'; // Scaled from 0.4in
-                    ctx.fillText("22nd", 30, titleStartY + 120);
-                    
-                    // "BDAY" - matches CSS .strip-title .bday
-                    ctx.font = '100 48px serif'; // Scaled from 0.4in, font-weight: 100
-                    ctx.letterSpacing = '24px'; // Scaled from 0.12in
-                    ctx.fillText("BDAY", 30, titleStartY + 180);
-                    ctx.letterSpacing = '0px';
-                    
-                    // Process photos - matches the exact layout users see
-                    let photosProcessed = 0;
-                    const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
-                    
-                    if (sessionPhotos.length === 0) {
-                        resolve(canvas.toDataURL('image/jpeg', 0.95));
-                        return;
-                    }
-                    
-                    console.log('📱 Creating EXACT MATCH photo strip');
-                    console.log('🎨 Canvas size:', canvas.width, 'x', canvas.height);
-                    console.log('📐 Photo dimensions:', photoWidth, 'x', photoHeight);
-                    
-                    sessionPhotos.forEach((photoData, index) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const y = photosStartY + (index * (photoHeight + photoSpacing));
-                            
-                            // Photo border - matches CSS border: 2px solid #d4b895 (scaled up)
-                            ctx.fillStyle = '#d4b895';
-                            ctx.fillRect(photoPadding - 4, y - 4, photoWidth + 8, photoHeight + 8);
-                            
-                            // Photo background - matches CSS background: #000
-                            ctx.fillStyle = '#000000';
-                            ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
-                            
-                            // Draw photo with filter if applied
-                            if (photoData.filter && photoData.filter !== 'none') {
-                                console.log(`🎨 Applying ${photoData.filter} filter to photo ${index + 1}`);
-                                
-                                // Create high-res temp canvas for filter
-                                const tempCanvas = document.createElement('canvas');
-                                const tempCtx = tempCanvas.getContext('2d');
-                                tempCanvas.width = photoWidth * 2;
-                                tempCanvas.height = photoHeight * 2;
-                                
-                                tempCtx.imageSmoothingEnabled = true;
-                                tempCtx.imageSmoothingQuality = 'high';
-                                
-                                // Apply filter
-                                tempCtx.filter = getCanvasFilter(photoData.filter);
-                                tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-                                
-                                // Draw filtered photo to main canvas
-                                ctx.filter = 'none';
-                                ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
-                                
-                                console.log(`✅ Applied ${photoData.filter} filter successfully`);
-                            } else {
-                                // No filter - direct draw
-                                ctx.filter = 'none';
-                                ctx.drawImage(img, photoPadding, y, photoWidth, photoHeight);
-                                console.log(`📸 Drew photo ${index + 1} without filter`);
-                            }
-                            
-                            photosProcessed++;
-                            if (photosProcessed === sessionPhotos.length) {
-                                console.log('✅ Photo strip created - EXACT MATCH to display!');
-                                resolve(canvas.toDataURL('image/jpeg', 0.95));
-                            }
-                        };
-                        
-                        img.onerror = () => {
-                            console.error('Failed to load photo', index);
-                            photosProcessed++;
-                            if (photosProcessed === sessionPhotos.length) {
-                                resolve(canvas.toDataURL('image/jpeg', 0.95));
-                            }
-                        };
-                        
-                        img.src = photoData.data;
-                    });
+                if (sessionPhotos.length === 0) {
+                    resolve(canvas.toDataURL('image/jpeg', 0.95));
+                    return;
                 }
                 
-                // Create the strip immediately
-                createRestOfStrip();
+                sessionPhotos.forEach((photoData, index) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const y = 50 + (index * 300);
+                        ctx.drawImage(img, 50, y, 300, 200);
+                        
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            resolve(canvas.toDataURL('image/jpeg', 0.95));
+                        }
+                    };
+                    img.onerror = () => {
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            resolve(canvas.toDataURL('image/jpeg', 0.95));
+                        }
+                    };
+                    img.src = photoData.data;
+                });
             });
         }
 
