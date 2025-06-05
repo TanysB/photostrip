@@ -239,7 +239,7 @@
             box-shadow: 0 6px 20px rgba(61, 40, 23, 0.3);
         }
 
-        /* Camera Page Styles - Optimized for iPad Mini */
+        /* Camera Page Styles */
         .camera-container {
             position: relative;
             z-index: 3;
@@ -365,7 +365,7 @@
             margin-top: 20px;
         }
 
-        /* Photo Strip Page - iPad Mini Specific Layout (6"×4") */
+        /* Photo Strip Page */
         .strip-container {
             position: relative;
             z-index: 3;
@@ -450,8 +450,8 @@
         }
 
         .strip-photo img {
-            width: 120%;
-            height: 180%;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
         }
 
@@ -664,7 +664,7 @@
             border: 2px solid #2196f3;
         }
 
-        /* iPad Mini Specific Optimizations */
+        /* Responsive Design */
         @media (max-width: 820px) and (max-height: 1180px) {
             .brittanys { font-size: 235px; }
             .twenty-second { font-size: 235px; }
@@ -789,6 +789,798 @@
                 <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
                 <div id="statusMessage"></div>
                 <button class="strip-page-btn" onclick="testCloudinaryConnection()" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white;">🔧 Test Cloudinary Setup</button>
+                </html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brittany's 22nd Birthday Photo Booth</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Allura&family=Alex+Brush&family=Italianno&family=Tangerine:wght@400;700&family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display:wght@100;200;300;400;500;600;700;800;900&family=Cinzel:wght@100;200;300;400;500;600;700;800;900&family=Cormorant+Garamond:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Dancing Script', cursive;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #d4b895 0%, #c9a876 100%);
+            border: 25px solid #3d2817;
+            box-sizing: border-box;
+        }
+
+        .cowboy-bg {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            width: calc(100% - 50px);
+            height: calc(100% - 50px);
+            background: url('cowboy.png') center/cover no-repeat;
+            opacity: 0.12;
+            z-index: 1;
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            color: #3d2817;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            padding: 40px 0;
+        }
+
+        .title {
+            text-shadow: 3px 3px 6px rgba(61, 40, 23, 0.3);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            flex: 1;
+            width: 100%;
+        }
+
+        @keyframes titleGlow {
+            0% { 
+                filter: drop-shadow(0 0 10px rgba(61, 40, 23, 0.3));
+            }
+            100% { 
+                filter: drop-shadow(0 0 25px rgba(61, 40, 23, 0.6));
+            }
+        }
+
+        .brittanys {
+            font-family: 'Great Vibes', cursive;
+            font-size: 315px;
+            font-weight: 400;
+            color: #3d2817;
+            line-height: 1;
+            text-shadow: 
+                8px 8px 16px rgba(61, 40, 23, 0.7),
+                4px 4px 8px rgba(61, 40, 23, 0.5),
+                2px 2px 4px rgba(61, 40, 23, 0.9),
+                0 0 30px rgba(139, 115, 85, 0.4);
+            transform: rotate(-2deg);
+            animation: gentleFloat 4s ease-in-out infinite;
+            position: relative;
+        }
+
+        .brittanys::before {
+            content: 'Brittanys';
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: rgba(200, 168, 118, 0.3);
+            text-shadow: none;
+            z-index: -1;
+            transform: translate(3px, 3px);
+        }
+
+        .twenty-second {
+            font-family: 'Great Vibes', cursive;
+            font-size: 315px;
+            font-weight: 400;
+            color: #3d2817;
+            line-height: 1;
+            text-shadow: 
+                8px 8px 16px rgba(61, 40, 23, 0.7),
+                4px 4px 8px rgba(61, 40, 23, 0.5),
+                2px 2px 4px rgba(61, 40, 23, 0.9),
+                0 0 30px rgba(139, 115, 85, 0.4);
+            transform: rotate(1deg);
+            animation: gentleFloat 4s ease-in-out infinite 1s;
+            position: relative;
+        }
+
+        .twenty-second::before {
+            content: '22nd';
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: rgba(200, 168, 118, 0.3);
+            text-shadow: none;
+            z-index: -1;
+            transform: translate(3px, 3px);
+        }
+
+        .bday {
+            font-family: 'Cinzel', serif;
+            font-size: 315px;
+            color: #3d2817;
+            font-weight: 100;
+            letter-spacing: 70px;
+            text-transform: uppercase;
+            text-shadow: 
+                10px 10px 20px rgba(61, 40, 23, 0.7),
+                5px 5px 10px rgba(61, 40, 23, 0.5),
+                2px 2px 5px rgba(61, 40, 23, 0.9),
+                0 0 40px rgba(139, 115, 85, 0.5);
+            animation: elegantPulse 6s ease-in-out infinite;
+            position: relative;
+            line-height: 1;
+        }
+
+        .bday::before {
+            content: 'BDAY';
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: rgba(200, 168, 118, 0.2);
+            text-shadow: none;
+            z-index: -1;
+            transform: translate(4px, 4px);
+        }
+
+        .elegant-btn {
+            background: linear-gradient(135deg, #c9a876 0%, #b8a082 25%, #a08968 50%, #8b7355 75%, #6b4423 100%);
+            border: 4px solid #3d2817;
+            padding: 35px 85px;
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #3d2817;
+            border-radius: 70px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 
+                0 18px 45px rgba(61, 40, 23, 0.5),
+                inset 0 3px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -3px 0 rgba(61, 40, 23, 0.3);
+            position: relative;
+            overflow: hidden;
+            text-shadow: 3px 3px 6px rgba(61, 40, 23, 0.4);
+            font-style: italic;
+            text-transform: capitalize;
+            letter-spacing: 3px;
+        }
+
+        .camera-container .elegant-btn {
+            padding: 25px 60px;
+            font-size: 2.8rem;
+        }
+
+        .elegant-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .elegant-btn::after {
+            display: none;
+        }
+
+        @keyframes gentleFloat {
+            0%, 100% { transform: rotate(-2deg) translateY(0px); }
+            50% { transform: rotate(-2deg) translateY(-8px); }
+        }
+
+        @keyframes elegantPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .elegant-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(61, 40, 23, 0.5);
+        }
+
+        .elegant-btn:hover::before {
+            left: 100%;
+        }
+
+        .elegant-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(61, 40, 23, 0.3);
+        }
+
+        /* Camera Page Styles */
+        .camera-container {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 50px;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .camera-screen {
+            width: 800px;
+            height: 600px;
+            border: 18px solid #3d2817;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+            box-shadow: 
+                0 20px 50px rgba(61, 40, 23, 0.6),
+                inset 0 0 25px rgba(61, 40, 23, 0.3);
+        }
+
+        .camera-screen.large {
+            width: 1800px;
+            height: 850px;
+            border: 30px solid #3d2817;
+            border-radius: 40px;
+            box-shadow: 
+                0 30px 70px rgba(61, 40, 23, 0.7),
+                inset 0 0 35px rgba(61, 40, 23, 0.4);
+        }
+
+        #video, #captureVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .filter-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 15px 20px;
+            justify-content: center;
+            max-width: 600px;
+        }
+
+        .filter-btn {
+            background: linear-gradient(135deg, #b8a082 0%, #a08968 50%, #8b7355 100%);
+            border: none;
+            padding: 12px 30px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #3d2817;
+            border-radius: 35px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(61, 40, 23, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.4s;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(61, 40, 23, 0.3);
+        }
+
+        .filter-btn:hover::before {
+            left: 100%;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #d4b895 0%, #c9a876 50%, #b8a082 100%);
+            box-shadow: inset 0 3px 10px rgba(61, 40, 23, 0.2);
+            transform: translateY(1px);
+        }
+
+        .countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 15rem;
+            color: white;
+            text-shadow: 
+                6px 6px 12px rgba(0,0,0,0.9),
+                3px 3px 6px rgba(0,0,0,0.7),
+                0 0 50px rgba(255,255,255,0.3);
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            z-index: 10;
+            display: none;
+            animation: countdownPulse 1s ease-in-out;
+        }
+
+        @keyframes countdownPulse {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .photo-counter {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2rem;
+            font-weight: 600;
+            color: #3d2817;
+            margin-top: 20px;
+        }
+
+        /* Photo Strip Page */
+        .strip-container {
+            position: relative;
+            z-index: 3;
+            display: grid;
+            grid-template-columns: 2in 4in;
+            width: 100vw;
+            height: 100vh;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .phone-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25in;
+            align-items: center;
+            justify-content: center;
+            padding: 0.2in;
+            background: transparent;
+            margin-left: 2.3in;
+        }
+
+        .photo-strip {
+            width: calc((100% + 3in) * 1.3);
+            height: calc((100% + 3in) * 1.3);
+            background: #3d2817;
+            border-radius: 15px;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(61, 40, 23, 0.6);
+            margin: 0.9in 0 0 0.4in;
+            transform: scale(1.56);
+            transform-origin: top left;
+        }
+
+        .photo-strip::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1.5in;
+            background: url('background.png') center/cover no-repeat;
+            opacity: 0.1;
+            z-index: 1;
+        }
+
+        .photo-strip::after {
+            content: '★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★';
+            position: absolute;
+            bottom: 0.05in;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.08in;
+            color: rgba(139, 115, 85, 0.3);
+            z-index: 2;
+            letter-spacing: 0.05in;
+        }
+
+        .strip-photos {
+            display: flex;
+            flex-direction: column;
+            gap: 0.08in;
+            height: 4.2in;
+            position: relative;
+            z-index: 2;
+            margin-top: 0.2in;
+            padding: 0 0.15in;
+        }
+
+        .strip-photo {
+            flex: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            border: 2px solid #d4b895;
+            height: 1.3in;
+            max-height: 1.3in;
+        }
+
+        .strip-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .strip-title {
+            position: absolute;
+            bottom: 0.3in;
+            left: 0.15in;
+            z-index: 10;
+            text-align: left;
+        }
+
+        .strip-title .brittanys {
+            font-family: 'Great Vibes', cursive;
+            font-size: 0.4in;
+            font-weight: 400;
+            color: #d4b895;
+            line-height: 0.9;
+            margin-bottom: -2px;
+            animation: none;
+            transform: none;
+            text-shadow: 2px 2px 4px rgba(61, 40, 23, 0.5);
+        }
+        
+        .strip-title .twenty-second {
+            font-family: 'Great Vibes', cursive;
+            font-size: 0.4in;
+            font-weight: 400;
+            color: #d4b895;
+            line-height: 0.9;
+            margin-bottom: 2px;
+            animation: none;
+            transform: none;
+            text-shadow: 2px 2px 4px rgba(61, 40, 23, 0.5);
+        }
+        
+        .strip-title .bday {
+            font-family: 'Cinzel', serif;
+            font-size: 0.4in;
+            color: #d4b895;
+            font-weight: 100;
+            letter-spacing: 0.12in;
+            text-transform: uppercase;
+            animation: none;
+            transform: none;
+            text-shadow: 2px 2px 4px rgba(61, 40, 23, 0.5);
+        }
+
+        .phone-input {
+            padding: 0.22in;
+            font-size: 0.22in;
+            border: 2px solid #3d2817;
+            border-radius: 20px;
+            background: rgba(212, 184, 149, 0.8);
+            width: 3.64in;
+            height: 0.6in;
+            text-align: center;
+            font-family: 'Dancing Script', cursive;
+            font-weight: 600;
+            color: #3d2817;
+        }
+
+        .phone-input::placeholder {
+            color: #6b4423;
+            font-style: italic;
+        }
+
+        .phone-input:focus {
+            outline: none;
+            border-color: #8b7355;
+            background: rgba(212, 184, 149, 1);
+            box-shadow: 0 0 8px rgba(61, 40, 23, 0.2);
+        }
+
+        .strip-page-btn {
+            background: linear-gradient(135deg, #c9a876 0%, #b8a082 25%, #a08968 50%, #8b7355 75%, #6b4423 100%);
+            border: 2px solid #3d2817;
+            padding: 0.16in 0.19in;
+            font-family: 'Playfair Display', serif;
+            font-size: 0.16in;
+            font-weight: 600;
+            color: #3d2817;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(61, 40, 23, 0.3);
+            text-transform: capitalize;
+            letter-spacing: 1px;
+            width: 3.64in;
+            height: 0.55in;
+            margin: 0.05in 0;
+        }
+
+        .strip-page-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(61, 40, 23, 0.4);
+        }
+
+        .strip-page-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 10px rgba(61, 40, 23, 0.3);
+        }
+
+        /* CSS Filters */
+        .sepia-filter {
+            filter: sepia(1) contrast(1.2) brightness(1.1);
+        }
+
+        .vintage-filter {
+            filter: sepia(0.8) contrast(1.3) brightness(0.9) hue-rotate(15deg);
+        }
+
+        .blackwhite-filter {
+            filter: grayscale(1) contrast(1.2) brightness(1.1);
+        }
+
+        .desert-filter {
+            filter: sepia(0.9) contrast(1.4) brightness(1.2) saturate(1.1) hue-rotate(35deg);
+        }
+
+        .sunset-filter {
+            filter: sepia(0.7) contrast(1.3) brightness(1.1) saturate(1.4) hue-rotate(10deg);
+        }
+
+        .retro-filter {
+            filter: contrast(1.5) saturate(1.2) sepia(0.3) hue-rotate(-10deg);
+        }
+
+        .lens-flare {
+            position: absolute;
+            top: 20%;
+            left: 30%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 30%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+            animation: lensFlare 0.3s ease-out;
+        }
+
+        @keyframes lensFlare {
+            0% { 
+                opacity: 0; 
+                transform: scale(0.3); 
+            }
+            30% { 
+                opacity: 1; 
+                transform: scale(1); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: scale(1.2); 
+            }
+        }
+
+        .flash-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .flash-overlay.flash {
+            animation: flashEffect 0.3s ease-out;
+        }
+
+        @keyframes flashEffect {
+            0% { opacity: 0; }
+            50% { opacity: 0.9; }
+            100% { opacity: 0; }
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+            border: 2px solid #4caf50;
+        }
+
+        .status-error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #c62828;
+            border: 2px solid #f44336;
+        }
+
+        .status-info {
+            background: rgba(33, 150, 243, 0.2);
+            color: #1565c0;
+            border: 2px solid #2196f3;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 820px) and (max-height: 1180px) {
+            .brittanys { font-size: 235px; }
+            .twenty-second { font-size: 235px; }
+            .bday { font-size: 235px; letter-spacing: 50px; }
+            .camera-screen { width: 650px; height: 450px; }
+            .camera-screen.large { width: 850px; height: 900px; }
+            .countdown { font-size: 12rem; }
+            .elegant-btn { font-size: 3.5rem; padding: 35px 85px; }
+        }
+
+        @media (max-width: 1180px) and (max-height: 820px) {
+            .brittanys { font-size: 155px; }
+            .twenty-second { font-size: 155px; }
+            .bday { font-size: 155px; letter-spacing: 35px; }
+            .camera-screen { width: 600px; height: 400px; }
+            .camera-screen.large { width: 750px; height: 850px; }
+            .countdown { font-size: 10rem; }
+            .elegant-btn { font-size: 3rem; padding: 30px 70px; }
+            .strip-container { flex-direction: row; gap: 50px; }
+        }
+
+        @media (max-width: 1024px) {
+            .brittanys { font-size: 215px; }
+            .twenty-second { font-size: 215px; }
+            .bday { font-size: 215px; letter-spacing: 45px; }
+            .camera-screen { width: 600px; height: 420px; }
+            .camera-screen.large { width: 850px; height: 900px; }
+            .countdown { font-size: 12rem; }
+            .elegant-btn { font-size: 3.5rem; padding: 35px 85px; }
+            .filter-btn { font-size: 1.8rem; padding: 15px 35px; }
+        }
+
+        @media (max-width: 768px) {
+            .brittanys { font-size: 135px; }
+            .twenty-second { font-size: 135px; }
+            .bday { font-size: 135px; letter-spacing: 30px; }
+            .camera-screen { width: 500px; height: 350px; }
+            .camera-screen.large { width: 650px; height: 750px; }
+            .countdown { font-size: 10rem; }
+            .elegant-btn { font-size: 3rem; padding: 30px 65px; }
+            .strip-container { flex-direction: column; gap: 40px; }
+            .photo-strip { width: 200px; height: 600px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Page -->
+    <div class="page active" id="startPage">
+        <div class="background">
+            <div class="cowboy-bg"></div>
+        </div>
+        <div class="main-content">
+            <div class="title">
+                <div class="brittanys">Brittanys</div>
+                <div class="twenty-second">22nd</div>
+                <div class="bday">BDAY</div>
+            </div>
+            <button class="elegant-btn" onclick="startPhotoSession()">Start</button>
+        </div>
+        <div class="flash-overlay" id="flashOverlay"></div>
+    </div>
+
+    <!-- Filter Selection Page -->
+    <div class="page" id="filterPage">
+        <div class="background">
+            <div class="cowboy-bg"></div>
+        </div>
+        <div class="camera-container">
+            <div class="camera-screen">
+                <video id="video" autoplay muted playsinline></video>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="setFilter('none')">No Filter</button>
+                <button class="filter-btn" onclick="setFilter('blackwhite')">Black & White</button>
+                <button class="filter-btn" onclick="setFilter('vintage')">Vintage</button>
+                <button class="filter-btn" onclick="setFilter('desert')">Desert</button>
+                <button class="filter-btn" onclick="setFilter('sunset')">Sunset</button>
+                <button class="filter-btn" onclick="setFilter('retro')">Retro</button>
+            </div>
+            <button class="elegant-btn" onclick="startCountdown()">Continue</button>
+        </div>
+        <div class="flash-overlay"></div>
+    </div>
+
+    <!-- Photo Capture Page -->
+    <div class="page" id="capturePage">
+        <div class="background">
+            <div class="cowboy-bg"></div>
+        </div>
+        <div class="camera-container">
+            <div class="camera-screen large">
+                <video id="captureVideo" autoplay muted playsinline></video>
+                <div class="countdown" id="countdown">3</div>
+            </div>
+            <div class="photo-counter" id="photoCounter">Photo 1 of 3</div>
+        </div>
+        <div class="flash-overlay"></div>
+    </div>
+
+    <!-- Photo Strip Page -->
+    <div class="page" id="stripPage">
+        <div class="background">
+            <div class="cowboy-bg"></div>
+        </div>
+        <div class="strip-container">
+            <div class="photo-strip">
+                <div class="strip-title">
+                    <div class="brittanys">Brittanys</div>
+                    <div class="twenty-second">22nd</div>
+                    <div class="bday">BDAY</div>
+                </div>
+                <div class="strip-photos">
+                    <div class="strip-photo" id="stripPhoto1"></div>
+                    <div class="strip-photo" id="stripPhoto2"></div>
+                    <div class="strip-photo" id="stripPhoto3"></div>
+                </div>
+            </div>
+            <div class="phone-input-container">
+                <div style="text-align: center; margin-bottom: 0.1in; color: #3d2817; font-family: 'Dancing Script', cursive; font-size: 0.14in; font-weight: 600;">
+                    Get your small & crisp photos! Perfect iPhone size!
+                </div>
+                <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
+                <div id="statusMessage"></div>
+                <button class="strip-page-btn" onclick="testCloudinaryConnection()" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white;">🔧 Test Cloudinary Setup</button>
+                              <button class="strip-page-btn" onclick="testCloudinaryConnection()" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white;">🔧 Test Cloudinary Setup</button>
                 <button class="strip-page-btn" onclick="testEmailTemplate()" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">📧 Test Email Template</button>
                 <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()">📧 Email Small & Crisp Photos</button>
                 <button class="strip-page-btn" onclick="downloadUltraHDPhotoStrip()">💾 Download Small & Crisp</button>
@@ -804,7 +1596,7 @@
     <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script type="text/javascript">
-        // Initialize EmailJS with your public key
+        // Initialize EmailJS
         (function() {
             emailjs.init({
                 publicKey: "o9F_uYO6T0n9C7ngK",
@@ -813,20 +1605,22 @@
     </script>
 
     <script>
+        // Global Variables
         let currentFilter = 'none';
         let capturedPhotos = [];
         let photoCount = 0;
         let stream = null;
         let sessionId = Date.now();
 
-        // ✅ ***** CLOUDINARY SETTINGS CONFIGURED ***** ✅
+        // Cloudinary Configuration
         const CLOUDINARY_CLOUD_NAME = 'dou32nvcj';
         const CLOUDINARY_UPLOAD_PRESET = 'brittany_birthday';
 
-        // Audio elements
+        // Audio Elements
         const beepSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAAA==');
         const cameraSound = new Audio('data:audio/wav;base64,UklGRnIGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU4GAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAA==');
 
+        // Utility Functions
         function showStatusMessage(message, type = 'info') {
             const statusDiv = document.getElementById('statusMessage');
             statusDiv.className = `status-message status-${type}`;
@@ -838,6 +1632,19 @@
             }, 5000);
         }
 
+        function getCanvasFilter(filterType) {
+            switch(filterType) {
+                case 'sepia': return 'sepia(1) contrast(1.2) brightness(1.1)';
+                case 'vintage': return 'sepia(0.8) contrast(1.3) brightness(0.9) hue-rotate(15deg)';
+                case 'blackwhite': return 'grayscale(1) contrast(1.2) brightness(1.1)';
+                case 'desert': return 'sepia(0.9) contrast(1.4) brightness(1.2) saturate(1.1) hue-rotate(35deg)';
+                case 'sunset': return 'sepia(0.7) contrast(1.3) brightness(1.1) saturate(1.4) hue-rotate(10deg)';
+                case 'retro': return 'contrast(1.5) saturate(1.2) sepia(0.3) hue-rotate(-10deg)';
+                default: return 'none';
+            }
+        }
+
+        // Photo Session Functions
         async function startPhotoSession() {
             sessionId = Date.now();
             console.log('🎬 Starting new photo session:', sessionId);
@@ -945,7 +1752,7 @@
             cameraSound.currentTime = 0;
             cameraSound.play().catch(e => console.log('Audio play failed:', e));
             
-            // Store ULTRA HIGH QUALITY photo (95% quality)
+            // Store photo with filter info
             const photoData = canvas.toDataURL('image/jpeg', 0.95);
             const photoInfo = {
                 data: photoData,
@@ -956,24 +1763,12 @@
             };
             
             capturedPhotos.push(photoInfo);
-            console.log(`📸 Captured ULTRA HD photo ${photoCount}/3:`, photoData.length, 'characters');
+            console.log(`📸 Captured photo ${photoCount}/3 with filter: ${currentFilter}`);
             
             if (photoCount < 3) {
                 setTimeout(() => takeNextPhoto(), 1500);
             } else {
                 setTimeout(() => showPhotoStrip(), 3000);
-            }
-        }
-
-        function getCanvasFilter(filterType) {
-            switch(filterType) {
-                case 'sepia': return 'sepia(1) contrast(1.2) brightness(1.1)';
-                case 'vintage': return 'sepia(0.8) contrast(1.3) brightness(0.9) hue-rotate(15deg)';
-                case 'blackwhite': return 'grayscale(1) contrast(1.2) brightness(1.1)';
-                case 'desert': return 'sepia(0.9) contrast(1.4) brightness(1.2) saturate(1.1) hue-rotate(35deg)';
-                case 'sunset': return 'sepia(0.7) contrast(1.3) brightness(1.1) saturate(1.4) hue-rotate(10deg)';
-                case 'retro': return 'contrast(1.5) saturate(1.2) sepia(0.3) hue-rotate(-10deg)';
-                default: return 'none';
             }
         }
 
@@ -1002,7 +1797,7 @@
             }
         }
 
-        // ===== SOLUTION 1: CLOUDINARY UPLOAD (BYPASSES 50KB LIMIT) =====
+        // Cloudinary Upload Functions
         async function uploadToCloudinaryAndEmail() {
             const emailInput = document.getElementById('emailInput');
             const email = emailInput.value.trim();
@@ -1039,7 +1834,7 @@
                 const cloudinaryUrl = await uploadImageToCloudinary(ultraHDStrip);
                 
                 button.textContent = '📧 Sending Email...';
-                showStatusMessage('Sending email with small, high-quality links...', 'info');
+                showStatusMessage('Sending email with high-quality links...', 'info');
                 
                 await emailjs.send('service_9n5lgms', 'template_js58xgg', {
                     to_email: email,
@@ -1063,22 +1858,13 @@ Enjoy your memories! 📸✨`,
                     photo3: ''
                 });
                 
-                console.log('✅ Small, high-quality email sent successfully via Cloudinary!');
-                showStatusMessage(`🎉 Small, high-quality photos uploaded and email sent to ${email}! Perfect iPhone size with crisp photo quality!`, 'success');
+                console.log('✅ Email sent successfully via Cloudinary!');
+                showStatusMessage(`🎉 Photos uploaded and email sent to ${email}! Perfect iPhone size with crisp photo quality!`, 'success');
                 emailInput.value = '';
                 
             } catch (error) {
                 console.error('❌ Cloudinary upload/email failed:', error);
-                
-                if (error.message.includes('not configured') || error.message.includes('Cloudinary')) {
-                    showStatusMessage('⚠️ Cloudinary setup failed. Please check your cloud name and upload preset.', 'error');
-                } else if (error.message.includes('400')) {
-                    showStatusMessage('⚠️ Upload failed. Please check your Cloudinary upload preset is set to "Unsigned".', 'error');
-                } else if (error.message.includes('401')) {
-                    showStatusMessage('⚠️ Cloudinary authentication failed. Please check your settings.', 'error');
-                } else {
-                    showStatusMessage('Upload failed: ' + error.message + '. Try download option instead.', 'error');
-                }
+                showStatusMessage('Upload failed: ' + error.message + '. Try download option instead.', 'error');
             } finally {
                 button.disabled = false;
                 button.textContent = originalText;
@@ -1087,7 +1873,6 @@ Enjoy your memories! 📸✨`,
 
         async function uploadImageToCloudinary(imageDataUrl) {
             console.log('🔧 Starting Cloudinary upload...');
-            console.log('Image size:', imageDataUrl.length, 'characters');
             
             const formData = new FormData();
             formData.append('file', imageDataUrl);
@@ -1096,232 +1881,185 @@ Enjoy your memories! 📸✨`,
             formData.append('quality', 'auto:good');
             formData.append('resource_type', 'image');
             
-            console.log('📡 Sending to Cloudinary API...');
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
             
-            try {
-                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                console.log('📡 Response status:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ Cloudinary error response:', errorText);
-                    
-                    if (response.status === 400) {
-                        if (errorText.includes('Invalid upload preset')) {
-                            throw new Error('Upload preset "brittany_birthday" not found. Please check your Cloudinary settings.');
-                        } else if (errorText.includes('unsigned')) {
-                            throw new Error('Upload preset must be set to "Unsigned" mode. Check your Cloudinary preset settings.');
-                        } else {
-                            throw new Error(`Bad request (400): ${errorText}`);
-                        }
-                    } else if (response.status === 401) {
-                        throw new Error('Unauthorized (401). Check your cloud name "dou32nvcj" is correct.');
-                    } else if (response.status === 403) {
-                        throw new Error('Forbidden (403). Make sure your upload preset allows unsigned uploads.');
-                    } else {
-                        throw new Error(`Cloudinary upload failed (${response.status}): ${errorText}`);
-                    }
-                }
-                
-                const result = await response.json();
-                console.log('✅ Cloudinary upload successful:', result.secure_url);
-                
-                if (!result.secure_url) {
-                    throw new Error('Cloudinary upload succeeded but no URL returned');
-                }
-                
-                return result.secure_url;
-                
-            } catch (networkError) {
-                console.error('❌ Network error:', networkError);
-                if (networkError.message.includes('fetch')) {
-                    throw new Error('Network connection failed. Please check your internet connection.');
-                }
-                throw networkError;
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Cloudinary upload failed (${response.status}): ${errorText}`);
             }
+            
+            const result = await response.json();
+            console.log('✅ Cloudinary upload successful:', result.secure_url);
+            
+            if (!result.secure_url) {
+                throw new Error('Cloudinary upload succeeded but no URL returned');
+            }
+            
+            return result.secure_url;
         }
 
-        // ===== SOLUTION 2: TINY PREVIEW (FITS IN 50KB) =====
-        async function sendTinyPreview() {
-            const emailInput = document.getElementById('emailInput');
-            const email = emailInput.value.trim();
-            
-            if (!email || !capturedPhotos.length) {
-                showStatusMessage('Please enter email and take photos first', 'error');
-                return;
-            }
-
-            const button = event.target;
-            const originalText = button.textContent;
-            button.disabled = true;
-            button.textContent = 'Creating Tiny Preview...';
-            
-            try {
-                const tinyPhotoStrip = await createTinyPhotoStrip(capturedPhotos);
-                
-                console.log('Tiny photo strip size:', tinyPhotoStrip.length, 'characters');
-                
-                if (tinyPhotoStrip.length > 50000) {
-                    throw new Error('Still too large even with maximum compression');
-                }
-                
-                button.textContent = 'Sending Preview...';
-                
-                await emailjs.send('service_9n5lgms', 'template_js58xgg', {
-                    to_email: email,
-                    to_name: email.split('@')[0],
-                    from_name: "Brittany's 22nd Birthday Party",
-                    subject: `📮 Preview: Your Photos from Brittany's 22nd Birthday!`,
-                    message: `Hi ${email.split('@')[0]}! 📸
-
-Here's a small preview of your photos from Brittany's 22nd birthday party!
-
-For FULL ULTRA HD quality, please visit the website and use the download button or set up cloud upload.
-
-This is just a tiny preview - the full quality versions are amazing! 🎉`,
-                    photo_strip: tinyPhotoStrip,
-                    date: new Date().toLocaleDateString(),
-                    photo_strip_url: '',
-                    photo1: '',
-                    photo2: '',
-                    photo3: ''
-                });
-                
-                showStatusMessage(`📮 Tiny preview sent to ${email}! Use download for full quality.`, 'success');
-                emailInput.value = '';
-                
-            } catch (error) {
-                showStatusMessage('Even tiny version failed. Please use download option.', 'error');
-            } finally {
-                button.disabled = false;
-                button.textContent = originalText;
-            }
-        }
-
-        async function createTinyPhotoStrip(photos) {
-            return new Promise((resolve, reject) => {
-                console.log('📸 Creating tiny photo strip from', photos.length, 'photos');
-                
-                if (!photos || photos.length === 0) {
-                    reject(new Error('No photos provided'));
-                    return;
-                }
-                
+        // Photo Strip Creation - FIXED VERSION
+        async function createUltraHDPhotoStrip(photos) {
+            return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                canvas.width = 120;
-                canvas.height = 360;
+                canvas.width = 200;
+                canvas.height = 600;
                 
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                // Background
                 ctx.fillStyle = '#3d2817';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                ctx.fillStyle = '#d4b895';
-                ctx.font = '10px serif';
-                ctx.textAlign = 'center';
-                ctx.fillText("Brittany's 22nd", canvas.width / 2, canvas.height - 15);
-                ctx.fillText("PREVIEW ONLY", canvas.width / 2, canvas.height - 5);
+                // Rounded corners
+                ctx.globalCompositeOperation = 'destination-in';
+                ctx.beginPath();
+                ctx.roundRect(0, 0, canvas.width, canvas.height, 10);
+                ctx.fill();
+                ctx.globalCompositeOperation = 'source-over';
                 
-                let photosProcessed = 0;
-                const photoWidth = canvas.width - 16;
-                const photoHeight = 80;
-                const startY = 8;
-                const photoSpacing = 8;
+                // FIXED: Add background.png moved up by 0.8 inches
+                const backgroundImg = new Image();
+                backgroundImg.onload = () => {
+                    const bottomBgHeight = 90; // 1.5in equivalent
+                    const moveUpBy = 58; // 0.8 inches = 58 pixels
+                    ctx.globalAlpha = 0.1;
+                    ctx.drawImage(backgroundImg, 0, canvas.height - bottomBgHeight - moveUpBy, canvas.width, bottomBgHeight);
+                    ctx.globalAlpha = 1.0;
+                    createRestOfStrip();
+                };
+                backgroundImg.onerror = () => {
+                    console.log('Background image not found, continuing without it');
+                    createRestOfStrip();
+                };
+                backgroundImg.src = 'background.png';
                 
-                const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId);
-                const photosToProcess = sessionPhotos.slice(0, 3);
-                
-                if (photosToProcess.length === 0) {
-                    reject(new Error('No valid photos from current session'));
-                    return;
-                }
-                
-                console.log('Processing', photosToProcess.length, 'photos for tiny strip');
-                
-                photosToProcess.forEach((photoData, index) => {
-                    const img = new Image();
+                function createRestOfStrip() {
+                    const photoSectionY = 40;
+                    const photoWidth = canvas.width - 30;
+                    const photoHeight = 120;
+                    const photoSpacing = 8;
+                    const photoPadding = 15;
                     
-                    img.onload = () => {
-                        try {
-                            const y = startY + (index * (photoHeight + photoSpacing));
-                            
-                            if (img.width === 0 || img.height === 0) {
-                                console.error('Invalid image dimensions for photo', index);
-                                photosProcessed++;
-                                if (photosProcessed === photosToProcess.length) {
-                                    finalizeTinyStrip();
-                                }
-                                return;
-                            }
-                            
-                            ctx.drawImage(img, 8, y, photoWidth, photoHeight);
-                            console.log('✅ Drew photo', index + 1, 'to tiny strip');
-                            
-                            photosProcessed++;
-                            if (photosProcessed === photosToProcess.length) {
-                                finalizeTinyStrip();
-                            }
-                        } catch (error) {
-                            console.error('Error drawing photo', index, ':', error);
-                            photosProcessed++;
-                            if (photosProcessed === photosToProcess.length) {
-                                finalizeTinyStrip();
-                            }
-                        }
-                    };
+                    // FIXED: Exact font match to CSS
+                    const titleSectionY = canvas.height - 120;
+                    ctx.fillStyle = '#d4b895';
+                    ctx.textAlign = 'left';
                     
-                    img.onerror = (error) => {
-                        console.error('Failed to load photo', index, ':', error);
-                        photosProcessed++;
-                        if (photosProcessed === photosToProcess.length) {
-                            finalizeTinyStrip();
-                        }
-                    };
+                    ctx.font = 'italic 32px serif'; // Great Vibes style
+                    ctx.fillText("Brittanys", 15, titleSectionY + 20);
                     
-                    if (!photoData.data || !photoData.data.startsWith('data:image/')) {
-                        console.error('Invalid photo data for photo', index);
-                        photosProcessed++;
-                        if (photosProcessed === photosToProcess.length) {
-                            finalizeTinyStrip();
-                        }
+                    ctx.font = 'italic 30px serif'; // Great Vibes style
+                    ctx.fillText("22nd", 15, titleSectionY + 50);
+                    
+                    ctx.font = '100 24px serif'; // Cinzel light
+                    ctx.letterSpacing = '8px';
+                    ctx.fillText("BDAY", 15, titleSectionY + 80);
+                    ctx.letterSpacing = '0px';
+                    
+                    // Decorative stars
+                    ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
+                    ctx.font = '8px serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('★ ◆ ★', canvas.width / 2, canvas.height - 5);
+                    
+                    let photosProcessed = 0;
+                    const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
+                    
+                    if (sessionPhotos.length === 0) {
+                        resolve(canvas.toDataURL('image/jpeg', 0.95));
                         return;
                     }
                     
-                    img.src = photoData.data;
-                });
-                
-                function finalizeTinyStrip() {
-                    try {
-                        const result = canvas.toDataURL('image/jpeg', 0.05);
-                        console.log('📸 Tiny strip created, size:', result.length, 'characters');
+                    console.log('📱 Creating photo strip with matching layout');
+                    console.log('🎨 Photos and filters:', sessionPhotos.map(p => ({ 
+                        photoNumber: p.photoNumber, 
+                        filter: p.filter || 'none'
+                    })));
+                    
+                    sessionPhotos.forEach((photoData, index) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const y = photoSectionY + (index * (photoHeight + photoSpacing));
+                            
+                            // Photo border
+                            ctx.fillStyle = '#d4b895';
+                            ctx.fillRect(photoPadding - 2, y - 2, photoWidth + 4, photoHeight + 4);
+                            
+                            // Photo background
+                            ctx.fillStyle = '#000000';
+                            ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
+                            
+                            // FIXED: Apply filter properly and use normal zoom (100%)
+                            if (photoData.filter && photoData.filter !== 'none') {
+                                console.log(`🎨 Applying ${photoData.filter} filter to photo ${index + 1}`);
+                                
+                                const tempCanvas = document.createElement('canvas');
+                                const tempCtx = tempCanvas.getContext('2d');
+                                
+                                const hiResWidth = photoWidth * 2;
+                                const hiResHeight = photoHeight * 2;
+                                tempCanvas.width = hiResWidth;
+                                tempCanvas.height = hiResHeight;
+                                
+                                tempCtx.imageSmoothingEnabled = true;
+                                tempCtx.imageSmoothingQuality = 'high';
+                                
+                                // Apply filter
+                                const filterValue = getCanvasFilter(photoData.filter);
+                                tempCtx.filter = filterValue;
+                                
+                                // Normal fit (no zoom)
+                                tempCtx.drawImage(img, 0, 0, hiResWidth, hiResHeight);
+                                
+                                ctx.filter = 'none';
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
+                                ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
+                                
+                                console.log(`✅ Applied ${photoData.filter} filter successfully`);
+                            } else {
+                                // No filter - normal fit
+                                ctx.filter = 'none';
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
+                                ctx.drawImage(img, photoPadding, y, photoWidth, photoHeight);
+                                console.log(`📸 Drew photo ${index + 1} without filter`);
+                            }
+                            
+                            photosProcessed++;
+                            if (photosProcessed === sessionPhotos.length) {
+                                console.log('📱 Photo strip created with matching layout!');
+                                resolve(canvas.toDataURL('image/jpeg', 0.95));
+                            }
+                        };
                         
-                        if (result.length > 50000) {
-                            console.warn('Tiny strip still too large:', result.length);
-                            const ultraTiny = canvas.toDataURL('image/jpeg', 0.02);
-                            resolve(ultraTiny);
-                        } else {
-                            resolve(result);
-                        }
-                    } catch (error) {
-                        console.error('Error creating tiny strip:', error);
-                        reject(new Error('Failed to create tiny photo strip: ' + error.message));
-                    }
+                        img.onerror = () => {
+                            console.error('Failed to load photo', index);
+                            photosProcessed++;
+                            if (photosProcessed === sessionPhotos.length) {
+                                resolve(canvas.toDataURL('image/jpeg', 0.95));
+                            }
+                        };
+                        
+                        img.src = photoData.data;
+                    });
                 }
                 
+                // Fallback if background doesn't load
                 setTimeout(() => {
-                    if (photosProcessed < photosToProcess.length) {
-                        console.warn('Timeout waiting for photos to load, proceeding anyway');
-                        finalizeTinyStrip();
-                    }
-                }, 5000);
+                    createRestOfStrip();
+                }, 1000);
             });
         }
 
-        // ===== IPHONE-FRIENDLY DOWNLOAD =====
+        // Download Function
         async function downloadUltraHDPhotoStrip() {
             if (!capturedPhotos.length) {
                 showStatusMessage('No photos to download. Take photos first!', 'error');
@@ -1359,7 +2097,7 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                         
-                        showStatusMessage('📱 Small, high-quality photo strip downloaded! Perfect iPhone size with crisp photos!', 'success');
+                        showStatusMessage('📱 Small, high-quality photo strip downloaded!', 'success');
                     }, 'image/jpeg', 0.9);
                 };
                 
@@ -1373,171 +2111,119 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             }
         }
 
-        // ===== FIXED: SMALL IPHONE PHOTO STRIP WITH MATCHING LAYOUT =====
-        async function createUltraHDPhotoStrip(photos) {
-            return new Promise((resolve) => {
+        // Tiny Preview Function
+        async function sendTinyPreview() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            if (!email || !capturedPhotos.length) {
+                showStatusMessage('Please enter email and take photos first', 'error');
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Creating Tiny Preview...';
+            
+            try {
+                const tinyPhotoStrip = await createTinyPhotoStrip(capturedPhotos);
+                
+                if (tinyPhotoStrip.length > 50000) {
+                    throw new Error('Still too large even with maximum compression');
+                }
+                
+                button.textContent = 'Sending Preview...';
+                
+                await emailjs.send('service_9n5lgms', 'template_js58xgg', {
+                    to_email: email,
+                    to_name: email.split('@')[0],
+                    from_name: "Brittany's 22nd Birthday Party",
+                    subject: `📮 Preview: Your Photos from Brittany's 22nd Birthday!`,
+                    message: `Hi ${email.split('@')[0]}! 📸
+
+Here's a small preview of your photos from Brittany's 22nd birthday party!
+
+For FULL ULTRA HD quality, please visit the website and use the download button.
+
+This is just a tiny preview - the full quality versions are amazing! 🎉`,
+                    photo_strip: tinyPhotoStrip,
+                    date: new Date().toLocaleDateString(),
+                    photo_strip_url: '',
+                    photo1: '',
+                    photo2: '',
+                    photo3: ''
+                });
+                
+                showStatusMessage(`📮 Tiny preview sent to ${email}! Use download for full quality.`, 'success');
+                emailInput.value = '';
+                
+            } catch (error) {
+                showStatusMessage('Even tiny version failed. Please use download option.', 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        async function createTinyPhotoStrip(photos) {
+            return new Promise((resolve, reject) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                canvas.width = 200;
-                canvas.height = 600;
-                
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
+                canvas.width = 120;
+                canvas.height = 360;
                 
                 ctx.fillStyle = '#3d2817';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                ctx.globalCompositeOperation = 'destination-in';
-                ctx.beginPath();
-                ctx.roundRect(0, 0, canvas.width, canvas.height, 10);
-                ctx.fill();
-                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = '#d4b895';
+                ctx.font = '10px serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("Brittany's 22nd", canvas.width / 2, canvas.height - 15);
+                ctx.fillText("PREVIEW ONLY", canvas.width / 2, canvas.height - 5);
                 
-                // ✅ FIXED: ADD BACKGROUND.PNG LIKE IN PREVIEW
-                const backgroundImg = new Image();
-                backgroundImg.onload = () => {
-                    const bottomBgHeight = 90;
-                    ctx.globalAlpha = 0.1;
-                    ctx.drawImage(backgroundImg, 0, canvas.height - bottomBgHeight, canvas.width, bottomBgHeight);
-                    ctx.globalAlpha = 1.0;
-                    createRestOfStrip();
-                };
-                backgroundImg.onerror = () => {
-                    console.log('Background image not found, continuing without it');
-                    createRestOfStrip();
-                };
-                backgroundImg.src = 'background.png';
+                let photosProcessed = 0;
+                const photoWidth = canvas.width - 16;
+                const photoHeight = 80;
+                const startY = 8;
+                const photoSpacing = 8;
                 
-                function createRestOfStrip() {
-                    const photoSectionY = 40;
-                    const photoWidth = canvas.width - 30;
-                    const photoHeight = 120;
-                    const photoSpacing = 8;
-                    const photoPadding = 15;
-                    
-                    // ✅ FIXED: EXACT FONT MATCH to CSS
-                    const titleSectionY = canvas.height - 120;
-                    ctx.fillStyle = '#d4b895';
-                    ctx.textAlign = 'left';
-                    
-                    ctx.font = 'italic 32px serif';
-                    ctx.fillText("Brittanys", 15, titleSectionY + 20);
-                    
-                    ctx.font = 'italic 30px serif';
-                    ctx.fillText("22nd", 15, titleSectionY + 50);
-                    
-                    ctx.font = '100 24px serif';
-                    ctx.letterSpacing = '8px';
-                    ctx.fillText("BDAY", 15, titleSectionY + 80);
-                    ctx.letterSpacing = '0px';
-                    
-                    ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
-                    ctx.font = '8px serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('★ ◆ ★', canvas.width / 2, canvas.height - 5);
-                    
-                    let photosProcessed = 0;
-                    const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
-                    
-                    if (sessionPhotos.length === 0) {
-                        resolve(canvas.toDataURL('image/jpeg', 0.95));
-                        return;
-                    }
-                    
-                    console.log('📱 Creating SMALL iPhone photo strip with HIGH QUALITY photos');
-                    console.log('🎨 Photos and their filters:', sessionPhotos.map(p => ({ 
-                        photoNumber: p.photoNumber, 
-                        filter: p.filter || 'none'
-                    })));
-                    
-                    sessionPhotos.forEach((photoData, index) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const y = photoSectionY + (index * (photoHeight + photoSpacing));
-                            
-                            ctx.fillStyle = '#d4b895';
-                            ctx.fillRect(photoPadding - 2, y - 2, photoWidth + 4, photoHeight + 4);
-                            
-                            ctx.fillStyle = '#000000';
-                            ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
-                            
-                            // ✅ FIXED: MATCH ZOOM LEVEL (120% width, 180% height like preview)
-                            if (photoData.filter && photoData.filter !== 'none') {
-                                console.log(`🎨 Applying HIGH QUALITY ${photoData.filter} filter to photo ${index + 1}`);
-                                
-                                const tempCanvas = document.createElement('canvas');
-                                const tempCtx = tempCanvas.getContext('2d');
-                                
-                                const hiResWidth = photoWidth * 2;
-                                const hiResHeight = photoHeight * 2;
-                                tempCanvas.width = hiResWidth;
-                                tempCanvas.height = hiResHeight;
-                                
-                                tempCtx.imageSmoothingEnabled = true;
-                                tempCtx.imageSmoothingQuality = 'high';
-                                
-                                const filterValue = getCanvasFilter(photoData.filter);
-                                tempCtx.filter = filterValue;
-                                
-                                const zoomedWidth = hiResWidth * 1.2;
-                                const zoomedHeight = hiResHeight * 1.8;
-                                const offsetX = -(zoomedWidth - hiResWidth) / 2;
-                                const offsetY = -(zoomedHeight - hiResHeight) / 2;
-                                
-                                tempCtx.drawImage(img, offsetX, offsetY, zoomedWidth, zoomedHeight);
-                                
-                                ctx.filter = 'none';
-                                ctx.imageSmoothingEnabled = true;
-                                ctx.imageSmoothingQuality = 'high';
-                                ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
-                                
-                                console.log(`✅ Applied HIGH QUALITY ${photoData.filter} filter with matching zoom`);
-                            } else {
-                                ctx.filter = 'none';
-                                ctx.imageSmoothingEnabled = true;
-                                ctx.imageSmoothingQuality = 'high';
-                                
-                                const zoomedWidth = photoWidth * 1.2;
-                                const zoomedHeight = photoHeight * 1.8;
-                                const offsetX = photoPadding - (zoomedWidth - photoWidth) / 2;
-                                const offsetY = y - (zoomedHeight - photoHeight) / 2;
-                                
-                                ctx.drawImage(img, offsetX, offsetY, zoomedWidth, zoomedHeight);
-                                console.log(`📸 Drew HIGH QUALITY photo ${index + 1} with matching zoom, no filter`);
-                            }
-                            
-                            photosProcessed++;
-                            if (photosProcessed === sessionPhotos.length) {
-                                console.log('📱 SMALL iPhone photo strip with HIGH QUALITY photos and matching layout created!');
-                                resolve(canvas.toDataURL('image/jpeg', 0.95));
-                            }
-                        };
-                        
-                        img.onerror = () => {
-                            console.error('Failed to load photo', index);
-                            photosProcessed++;
-                            if (photosProcessed === sessionPhotos.length) {
-                                resolve(canvas.toDataURL('image/jpeg', 0.95));
-                            }
-                        };
-                        
-                        img.src = photoData.data;
-                    });
+                const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
+                
+                if (sessionPhotos.length === 0) {
+                    reject(new Error('No valid photos from current session'));
+                    return;
                 }
                 
-                // If no background image, start immediately
-                if (!backgroundImg.complete) {
-                    setTimeout(() => {
-                        if (!backgroundImg.complete) {
-                            createRestOfStrip();
+                sessionPhotos.forEach((photoData, index) => {
+                    const img = new Image();
+                    
+                    img.onload = () => {
+                        const y = startY + (index * (photoHeight + photoSpacing));
+                        ctx.drawImage(img, 8, y, photoWidth, photoHeight);
+                        
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            const result = canvas.toDataURL('image/jpeg', 0.05);
+                            resolve(result);
                         }
-                    }, 1000);
-                }
+                    };
+                    
+                    img.onerror = () => {
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            const result = canvas.toDataURL('image/jpeg', 0.05);
+                            resolve(result);
+                        }
+                    };
+                    
+                    img.src = photoData.data;
+                });
             });
         }
 
-        // ===== TEST EMAIL TEMPLATE =====
+        // Test Functions
         async function testEmailTemplate() {
             const emailInput = document.getElementById('emailInput');
             const email = emailInput.value.trim();
@@ -1553,44 +2239,21 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             button.textContent = '📧 Testing...';
             
             try {
-                console.log('📧 Testing EmailJS template with minimal data...');
-                showStatusMessage('Testing EmailJS template...', 'info');
-                
-                const testData = {
+                await emailjs.send('service_9n5lgms', 'template_js58xgg', {
                     to_email: email,
                     message: `Hi there! This is a test email from Brittany's 22nd birthday photo booth. If you're reading this, the template is working correctly! 🎉`
-                };
+                });
                 
-                console.log('Test email data:', testData);
-                
-                await emailjs.send('service_9n5lgms', 'template_js58xgg', testData);
-                
-                console.log('✅ Test email sent successfully!');
-                showStatusMessage(`✅ Test email sent to ${email}! Check your inbox to confirm the template works.`, 'success');
+                showStatusMessage(`✅ Test email sent to ${email}! Check your inbox.`, 'success');
                 
             } catch (error) {
-                console.error('❌ Test email failed:', error);
-                
-                let helpMessage = '❌ Test email failed: ' + error.message + '\n\n';
-                
-                if (error.message.includes('corrupted') || error.message.includes('Template')) {
-                    helpMessage += '🔧 FIX: Your EmailJS template has corrupted variables. Please recreate it from scratch using the ultra minimal template.';
-                } else if (error.message.includes('template not found')) {
-                    helpMessage += '🔧 FIX: Template "template_js58xgg" not found. Check your template ID.';
-                } else if (error.message.includes('service not found')) {
-                    helpMessage += '🔧 FIX: Service "service_9n5lgms" not found. Check your service ID.';
-                } else {
-                    helpMessage += '🔧 FIX: Check your EmailJS settings and try again.';
-                }
-                
-                showStatusMessage(helpMessage, 'error');
+                showStatusMessage('❌ Test email failed: ' + error.message, 'error');
             } finally {
                 button.disabled = false;
                 button.textContent = originalText;
             }
         }
 
-        // ===== TEST CLOUDINARY CONNECTION =====
         async function testCloudinaryConnection() {
             const button = event.target;
             const originalText = button.textContent;
@@ -1598,10 +2261,6 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             button.textContent = '🔧 Testing...';
             
             try {
-                console.log('🔧 Testing Cloudinary configuration...');
-                console.log('Cloud Name:', CLOUDINARY_CLOUD_NAME);
-                console.log('Upload Preset:', CLOUDINARY_UPLOAD_PRESET);
-                
                 showStatusMessage('Testing Cloudinary connection...', 'info');
                 
                 const testCanvas = document.createElement('canvas');
@@ -1617,31 +2276,12 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 testCtx.fillText('TEST', 50, 55);
                 
                 const testImage = testCanvas.toDataURL('image/jpeg', 0.8);
-                console.log('📸 Created test image, size:', testImage.length, 'characters');
-                
                 const uploadedUrl = await uploadImageToCloudinary(testImage);
                 
-                console.log('✅ Test upload successful!');
-                showStatusMessage(`✅ Cloudinary test successful! Your setup is working perfectly. Test image uploaded: ${uploadedUrl.substring(0, 50)}...`, 'success');
+                showStatusMessage(`✅ Cloudinary test successful! Image uploaded: ${uploadedUrl.substring(0, 50)}...`, 'success');
                 
             } catch (error) {
-                console.error('❌ Cloudinary test failed:', error);
-                
-                let helpMessage = '❌ Cloudinary test failed: ' + error.message + '\n\n';
-                
-                if (error.message.includes('Invalid upload preset')) {
-                    helpMessage += '🔧 FIX: Go to Cloudinary → Settings → Upload → Upload Presets → Make sure "brittany_birthday" exists and is set to "Unsigned"';
-                } else if (error.message.includes('Unauthorized')) {
-                    helpMessage += '🔧 FIX: Check that your cloud name "dou32nvcj" is correct in your Cloudinary dashboard';
-                } else if (error.message.includes('unsigned')) {
-                    helpMessage += '🔧 FIX: Your upload preset must be set to "Unsigned" mode. Edit the preset in Cloudinary settings.';
-                } else if (error.message.includes('Network')) {
-                    helpMessage += '🔧 FIX: Check your internet connection and try again';
-                } else {
-                    helpMessage += '🔧 FIX: Please check your Cloudinary settings and try again';
-                }
-                
-                showStatusMessage(helpMessage, 'error');
+                showStatusMessage('❌ Cloudinary test failed: ' + error.message, 'error');
             } finally {
                 button.disabled = false;
                 button.textContent = originalText;
@@ -1677,6 +2317,8 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
         window.setFilter = setFilter;
         window.startCountdown = startCountdown;
         window.restartSession = restartSession;
-    </script>
+   </script>
 </body>
 </html>
+
+              
