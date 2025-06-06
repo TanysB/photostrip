@@ -1285,7 +1285,7 @@ Enjoy your memories! 📸✨`,
             });
         }
         
-        // Manually overlay photos onto the screenshot - REGULAR SIZE
+        // Manually overlay photos onto the screenshot - ULTRA HIGH QUALITY
         function overlayPhotosManually(canvas, photos) {
             return new Promise((resolve) => {
                 const ctx = canvas.getContext('2d');
@@ -1296,7 +1296,7 @@ Enjoy your memories! 📸✨`,
                     return;
                 }
                 
-                console.log(`🎨 Manually overlaying ${sessionPhotos.length} photos at REGULAR SIZE...`);
+                console.log(`🎨 Manually overlaying ${sessionPhotos.length} photos at ULTRA HIGH QUALITY...`);
                 
                 let photosProcessed = 0;
                 
@@ -1316,39 +1316,38 @@ Enjoy your memories! 📸✨`,
                         ctx.fillStyle = '#000000';
                         ctx.fillRect(paddingX, y, photoWidth, photoHeight);
                         
-                        // Draw photo at REGULAR SIZE with filter if needed
+                        // Draw photo at ULTRA HIGH QUALITY with filter if needed
                         if (photoData.filter && photoData.filter !== 'none') {
                             const tempCanvas = document.createElement('canvas');
                             const tempCtx = tempCanvas.getContext('2d');
                             
-                            // Use original image dimensions for quality
-                            tempCanvas.width = img.naturalWidth || img.width;
-                            tempCanvas.height = img.naturalHeight || img.height;
+                            // Use MAXIMUM resolution for ultra quality
+                            const maxWidth = Math.max(img.naturalWidth || img.width, photoWidth * 2);
+                            const maxHeight = Math.max(img.naturalHeight || img.height, photoHeight * 2);
                             
-                            tempCtx.imageSmoothingEnabled = true;
-                            tempCtx.imageSmoothingQuality = 'high';
+                            tempCanvas.width = maxWidth;
+                            tempCanvas.height = maxHeight;
+                            
+                            tempCtx.imageSmoothingEnabled = false; // Crisp pixels
                             tempCtx.filter = getCanvasFilter(photoData.filter);
                             
-                            // Draw at original size first
-                            tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+                            // Draw at MAXIMUM size first
+                            tempCtx.drawImage(img, 0, 0, maxWidth, maxHeight);
                             
-                            // Then scale to fit properly with object-fit: cover behavior
-                            ctx.imageSmoothingEnabled = true;
-                            ctx.imageSmoothingQuality = 'high';
+                            // Then scale to fit properly with perfect quality
+                            ctx.imageSmoothingEnabled = false;
                             
-                            const imgAspect = tempCanvas.width / tempCanvas.height;
+                            const imgAspect = maxWidth / maxHeight;
                             const boxAspect = photoWidth / photoHeight;
                             
                             let drawWidth, drawHeight, drawX, drawY;
                             
                             if (imgAspect > boxAspect) {
-                                // Image is wider than box
                                 drawHeight = photoHeight;
                                 drawWidth = drawHeight * imgAspect;
                                 drawX = paddingX - (drawWidth - photoWidth) / 2;
                                 drawY = y;
                             } else {
-                                // Image is taller than box
                                 drawWidth = photoWidth;
                                 drawHeight = drawWidth / imgAspect;
                                 drawX = paddingX;
@@ -1356,25 +1355,24 @@ Enjoy your memories! 📸✨`,
                             }
                             
                             ctx.drawImage(tempCanvas, drawX, drawY, drawWidth, drawHeight);
-                            console.log(`✅ Overlaid photo ${index + 1} with ${photoData.filter} filter at regular size`);
+                            console.log(`✅ Overlaid photo ${index + 1} with ${photoData.filter} filter at ULTRA quality`);
                         } else {
-                            // No filter - draw at regular size with proper aspect ratio
-                            ctx.imageSmoothingEnabled = true;
-                            ctx.imageSmoothingQuality = 'high';
+                            // No filter - draw at MAXIMUM quality with perfect aspect ratio
+                            ctx.imageSmoothingEnabled = false;
                             
-                            const imgAspect = (img.naturalWidth || img.width) / (img.naturalHeight || img.height);
+                            const imgWidth = img.naturalWidth || img.width;
+                            const imgHeight = img.naturalHeight || img.height;
+                            const imgAspect = imgWidth / imgHeight;
                             const boxAspect = photoWidth / photoHeight;
                             
                             let drawWidth, drawHeight, drawX, drawY;
                             
                             if (imgAspect > boxAspect) {
-                                // Image is wider than box
                                 drawHeight = photoHeight;
                                 drawWidth = drawHeight * imgAspect;
                                 drawX = paddingX - (drawWidth - photoWidth) / 2;
                                 drawY = y;
                             } else {
-                                // Image is taller than box
                                 drawWidth = photoWidth;
                                 drawHeight = drawWidth / imgAspect;
                                 drawX = paddingX;
@@ -1382,12 +1380,12 @@ Enjoy your memories! 📸✨`,
                             }
                             
                             ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-                            console.log(`✅ Overlaid photo ${index + 1} at regular size without filter`);
+                            console.log(`✅ Overlaid photo ${index + 1} at ULTRA quality without filter`);
                         }
                         
                         photosProcessed++;
                         if (photosProcessed === sessionPhotos.length) {
-                            console.log('🎉 All photos manually overlaid at REGULAR SIZE successfully!');
+                            console.log('🎉 All photos manually overlaid at ULTRA HIGH QUALITY!');
                             resolve(canvas);
                         }
                     };
@@ -1405,9 +1403,9 @@ Enjoy your memories! 📸✨`,
             });
         }
         
-        // Enhanced fallback canvas method - PHOTO STRIP ONLY - REGULAR SIZE PHOTOS
+        // Enhanced fallback canvas method - NO TEXT, NO BACKGROUND, USE LAST.PNG
         async function createCanvasFallbackStrip(photos) {
-            console.log('🎨 Creating fallback photo strip with regular size photos...');
+            console.log('🎨 Creating clean photo strip with last.png bottom and NO compression...');
             
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
@@ -1419,11 +1417,10 @@ Enjoy your memories! 📸✨`,
                 const actualHeight = photoStripElement.offsetHeight;
                 
                 // Create high-res canvas matching just the photo strip
-                canvas.width = actualWidth * 2; // 2x for quality
-                canvas.height = actualHeight * 2;
+                canvas.width = actualWidth * 3; // 3x for ULTRA high quality
+                canvas.height = actualHeight * 3;
                 
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
+                ctx.imageSmoothingEnabled = false; // Disable smoothing for crisp pixels
                 
                 // Photo strip background
                 ctx.fillStyle = '#3d2817';
@@ -1432,121 +1429,121 @@ Enjoy your memories! 📸✨`,
                 // Rounded corners to match CSS
                 ctx.globalCompositeOperation = 'destination-in';
                 ctx.beginPath();
-                ctx.roundRect(0, 0, canvas.width, canvas.height, 30);
+                ctx.roundRect(0, 0, canvas.width, canvas.height, 45); // Scaled for 3x
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over';
                 
-                // Add the background.png pattern at bottom - MOVED UP BY 0.5 INCHES
-                const backgroundImg = new Image();
-                backgroundImg.onload = () => {
-                    const bgHeight = 150; // 1.5in equivalent scaled
-                    const moveUpBy = 164; // 0.8in + 0.5in = 1.3in total = 164 pixels at 2x scale
-                    ctx.globalAlpha = 0.1;
-                    ctx.drawImage(backgroundImg, 0, canvas.height - bgHeight - moveUpBy, canvas.width, bgHeight);
+                // Add last.png at the bottom instead of background.png and text
+                const lastImg = new Image();
+                lastImg.onload = () => {
+                    const lastHeight = 180; // Adjust as needed
+                    ctx.globalAlpha = 1.0; // Full opacity for last.png
+                    ctx.drawImage(lastImg, 0, canvas.height - lastHeight, canvas.width, lastHeight);
                     ctx.globalAlpha = 1.0;
-                    drawPhotoStripContent();
+                    drawPhotosOnly();
                 };
-                backgroundImg.onerror = () => {
-                    console.log('Background image not found, continuing without it');
-                    drawPhotoStripContent();
+                lastImg.onerror = () => {
+                    console.log('last.png not found, continuing without bottom image');
+                    drawPhotosOnly();
                 };
-                backgroundImg.src = 'background.png';
+                lastImg.src = 'last.png';
                 
-                function drawPhotoStripContent() {
-                    // Title area - exact match to CSS positioning
-                    const titleY = canvas.height - 240;
-                    ctx.fillStyle = '#d4b895';
-                    ctx.textAlign = 'left';
+                function drawPhotosOnly() {
+                    // NO TEXT - NO TITLE - JUST PHOTOS
                     
-                    ctx.font = 'italic 80px serif'; // Great Vibes style scaled
-                    ctx.fillText("Brittanys", 30, titleY + 40);
-                    ctx.fillText("22nd", 30, titleY + 120);
-                    
-                    ctx.font = '100 48px serif'; // Cinzel light scaled
-                    ctx.fillText("BDAY", 30, titleY + 180);
-                    
-                    // Decorative stars at bottom
-                    ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
-                    ctx.font = '16px serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★ ◆ ★', canvas.width / 2, canvas.height - 20);
-                    
-                    // Draw the captured photos in REGULAR SIZE (not compressed)
+                    // Draw ONLY the captured photos in ULTRA HIGH QUALITY
                     const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
                     let photosProcessed = 0;
                     
                     if (sessionPhotos.length === 0) {
                         console.log('⚠️ No photos found for current session');
-                        resolve(canvas.toDataURL('image/jpeg', 0.95));
+                        resolve(canvas.toDataURL('image/jpeg', 1.0)); // Max quality
                         return;
                     }
                     
-                    // Photo positioning to match CSS exactly
-                    const photoWidth = canvas.width - 60; // padding: 0 0.15in scaled
-                    const photoHeight = 250; // height: 1.3in scaled  
-                    const photoStartY = 40; // margin-top: 0.2in scaled
-                    const photoSpacing = 16; // gap: 0.08in scaled
-                    const photoPadding = 30; // padding scaled
+                    // Photo positioning scaled for 3x resolution
+                    const photoWidth = canvas.width - 90; // padding scaled for 3x
+                    const photoHeight = 375; // height scaled for 3x
+                    const photoStartY = 60; // margin scaled for 3x
+                    const photoSpacing = 24; // gap scaled for 3x
+                    const photoPadding = 45; // padding scaled for 3x
                     
-                    console.log(`📸 Drawing ${sessionPhotos.length} photos at REGULAR SIZE`);
-                    console.log(`📐 Photo dimensions: ${photoWidth}x${photoHeight}`);
+                    console.log(`📸 Drawing ${sessionPhotos.length} photos in ULTRA HIGH QUALITY`);
+                    console.log(`📐 Photo dimensions: ${photoWidth}x${photoHeight} at 3x resolution`);
                     
                     sessionPhotos.forEach((photoData, index) => {
                         const img = new Image();
                         img.onload = () => {
                             const y = photoStartY + (index * (photoHeight + photoSpacing));
                             
-                            // Photo border - matches CSS border: 2px solid #d4b895
+                            // Photo border - matches CSS border scaled for 3x
                             ctx.fillStyle = '#d4b895';
-                            ctx.fillRect(photoPadding - 4, y - 4, photoWidth + 8, photoHeight + 8);
+                            ctx.fillRect(photoPadding - 6, y - 6, photoWidth + 12, photoHeight + 12);
                             
                             // Black square background
                             ctx.fillStyle = '#000000';
                             ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
                             
-                            // Insert the actual captured photo at REGULAR SIZE (no compression)
+                            // Insert the actual captured photo at MAXIMUM QUALITY
                             if (photoData.filter && photoData.filter !== 'none') {
-                                console.log(`🎨 Applying ${photoData.filter} filter to photo ${index + 1} at regular size`);
+                                console.log(`🎨 Applying ${photoData.filter} filter to photo ${index + 1} at ULTRA quality`);
                                 
                                 const tempCanvas = document.createElement('canvas');
                                 const tempCtx = tempCanvas.getContext('2d');
                                 
-                                // Use the original image dimensions to preserve quality
-                                tempCanvas.width = img.naturalWidth || img.width;
-                                tempCanvas.height = img.naturalHeight || img.height;
+                                // Use MAXIMUM resolution - even higher than original
+                                const maxWidth = Math.max(img.naturalWidth || img.width, photoWidth);
+                                const maxHeight = Math.max(img.naturalHeight || img.height, photoHeight);
                                 
-                                tempCtx.imageSmoothingEnabled = true;
-                                tempCtx.imageSmoothingQuality = 'high';
+                                tempCanvas.width = maxWidth;
+                                tempCanvas.height = maxHeight;
+                                
+                                tempCtx.imageSmoothingEnabled = false; // Crisp pixels
                                 tempCtx.filter = getCanvasFilter(photoData.filter);
                                 
-                                // Draw at original size first
-                                tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+                                // Draw at MAXIMUM size first
+                                tempCtx.drawImage(img, 0, 0, maxWidth, maxHeight);
                                 
-                                // Then scale to fit the photo area (preserves aspect ratio)
-                                ctx.imageSmoothingEnabled = true;
-                                ctx.imageSmoothingQuality = 'high';
-                                ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
+                                // Then draw to main canvas with perfect quality
+                                ctx.imageSmoothingEnabled = false;
                                 
-                                console.log(`✅ Photo ${index + 1} inserted with ${photoData.filter} filter at regular size`);
-                            } else {
-                                // No filter - draw at regular size with high quality
-                                ctx.imageSmoothingEnabled = true;
-                                ctx.imageSmoothingQuality = 'high';
-                                
-                                // Use object-fit: cover behavior for proper aspect ratio
-                                const imgAspect = img.naturalWidth / img.naturalHeight;
+                                // Perfect aspect ratio fit
+                                const imgAspect = maxWidth / maxHeight;
                                 const boxAspect = photoWidth / photoHeight;
                                 
                                 let drawWidth, drawHeight, drawX, drawY;
                                 
                                 if (imgAspect > boxAspect) {
-                                    // Image is wider than box
                                     drawHeight = photoHeight;
                                     drawWidth = drawHeight * imgAspect;
                                     drawX = photoPadding - (drawWidth - photoWidth) / 2;
                                     drawY = y;
                                 } else {
-                                    // Image is taller than box
+                                    drawWidth = photoWidth;
+                                    drawHeight = drawWidth / imgAspect;
+                                    drawX = photoPadding;
+                                    drawY = y - (drawHeight - photoHeight) / 2;
+                                }
+                                
+                                ctx.drawImage(tempCanvas, drawX, drawY, drawWidth, drawHeight);
+                                console.log(`✅ Photo ${index + 1} inserted with ${photoData.filter} filter at ULTRA quality`);
+                            } else {
+                                // No filter - MAXIMUM quality direct draw
+                                ctx.imageSmoothingEnabled = false;
+                                
+                                const imgWidth = img.naturalWidth || img.width;
+                                const imgHeight = img.naturalHeight || img.height;
+                                const imgAspect = imgWidth / imgHeight;
+                                const boxAspect = photoWidth / photoHeight;
+                                
+                                let drawWidth, drawHeight, drawX, drawY;
+                                
+                                if (imgAspect > boxAspect) {
+                                    drawHeight = photoHeight;
+                                    drawWidth = drawHeight * imgAspect;
+                                    drawX = photoPadding - (drawWidth - photoWidth) / 2;
+                                    drawY = y;
+                                } else {
                                     drawWidth = photoWidth;
                                     drawHeight = drawWidth / imgAspect;
                                     drawX = photoPadding;
@@ -1554,13 +1551,13 @@ Enjoy your memories! 📸✨`,
                                 }
                                 
                                 ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-                                console.log(`✅ Photo ${index + 1} inserted at regular size without filter`);
+                                console.log(`✅ Photo ${index + 1} inserted at MAXIMUM quality without filter`);
                             }
                             
                             photosProcessed++;
                             if (photosProcessed === sessionPhotos.length) {
-                                console.log('🎉 Photo strip complete with REGULAR SIZE photos and background moved up 0.5in!');
-                                resolve(canvas.toDataURL('image/jpeg', 0.95));
+                                console.log('🎉 Clean photo strip complete with last.png bottom and ZERO compression!');
+                                resolve(canvas.toDataURL('image/jpeg', 1.0)); // MAXIMUM quality output
                             }
                         };
                         
@@ -1568,7 +1565,7 @@ Enjoy your memories! 📸✨`,
                             console.error(`❌ Failed to load photo ${index + 1}`);
                             photosProcessed++;
                             if (photosProcessed === sessionPhotos.length) {
-                                resolve(canvas.toDataURL('image/jpeg', 0.95));
+                                resolve(canvas.toDataURL('image/jpeg', 1.0)); // MAXIMUM quality output
                             }
                         };
                         
@@ -1578,7 +1575,7 @@ Enjoy your memories! 📸✨`,
                 
                 // Fallback timeout
                 setTimeout(() => {
-                    drawPhotoStripContent();
+                    drawPhotosOnly();
                 }, 1000);
             });
         } 
