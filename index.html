@@ -784,14 +784,13 @@
             </div>
             <div class="phone-input-container">
                 <div style="text-align: center; margin-bottom: 0.1in; color: #3d2817; font-family: 'Dancing Script', cursive; font-size: 0.14in; font-weight: 600;">
-                    Get your ultra high-quality photos! Perfect iPhone size!
+                    Get your ultra high-quality photos instantly!
                 </div>
                 <input type="email" class="phone-input" id="emailInput" placeholder="Enter your email address">
                 <div id="statusMessage"></div>
-                <button class="strip-page-btn" onclick="downloadUltraHDPhotoStrip()">💾 Download ULTRA HD Photos</button>
-                <button class="strip-page-btn" onclick="testCloudinaryConnection()" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white;">🔧 Test Cloudinary Setup</button>
-                <button class="strip-page-btn" onclick="uploadToCloudinaryAndEmail()" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">📧 Email via Cloud (if working)</button>
-                <button class="strip-page-btn" onclick="sendTinyPreview()">📮 Email Tiny Preview</button>
+                <button class="strip-page-btn" onclick="autoDownloadAndEmail()">🚀 Auto-Download + Email Instructions</button>
+                <button class="strip-page-btn" onclick="emailDownloadLink()">📧 Email Download Instructions</button>
+                <button class="strip-page-btn" onclick="downloadUltraHDPhotoStrip()">💾 Manual Download Ultra HD</button>
                 <button class="strip-page-btn" onclick="restartSession()">🔄 Take New Photos</button>
             </div>
         </div>
@@ -818,9 +817,9 @@
         let stream = null;
         let sessionId = Date.now();
 
-        // ✅ ***** CLOUDINARY SETTINGS CONFIGURED ***** ✅
+        // ✅ ***** CLOUDINARY SETTINGS - UPDATE WITH YOUR ACTUAL PRESET NAME ***** ✅
         const CLOUDINARY_CLOUD_NAME = 'dou32nvcj';
-        const CLOUDINARY_UPLOAD_PRESET = 'brittany_birthday'; // Back to original name
+        const CLOUDINARY_UPLOAD_PRESET = 'ml_default'; // CHANGE THIS to your actual preset name
 
         // Audio elements
         const beepSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCjiZ3+6+diMFpgAAAA==');
@@ -1013,7 +1012,409 @@
             }
         }
 
-        // ===== SOLUTION 1: CLOUDINARY UPLOAD (BYPASSES 50KB LIMIT) =====
+        // ===== AUTOMATIC DOWNLOAD + EMAIL SOLUTION =====
+        async function autoDownloadAndEmail() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showStatusMessage('Please enter an email address', 'error');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showStatusMessage('Please enter a valid email address', 'error');
+                return;
+            }
+
+            if (!capturedPhotos.length) {
+                showStatusMessage('No photos to send. Take photos first!', 'error');
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = '📱 Auto-downloading...';
+            
+            try {
+                showStatusMessage('Step 1: Creating ultra HD photo strip...', 'info');
+                
+                // Create the ultra HD photo strip
+                const ultraHDStrip = await createUltraHDPhotoStrip(capturedPhotos);
+                
+                button.textContent = '💾 Downloading to iPad...';
+                showStatusMessage('Step 2: Auto-downloading to iPad...', 'info');
+                
+                // Auto-download the file to iPad
+                await autoDownloadFile(ultraHDStrip);
+                
+                // Small delay to ensure download completes
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                button.textContent = '📧 Emailing download link...';
+                showStatusMessage('Step 3: Sending email with download instructions...', 'info');
+                
+                // Send email with instructions to get the downloaded file
+                await emailjs.send('service_9n5lgms', 'template_js58xgg', {
+                    to_email: email,
+                    to_name: email.split('@')[0],
+                    from_name: "Brittany's 22nd Birthday Party",
+                    subject: `🎉 Your Ultra HD Photos from Brittany's 22nd Birthday!`,
+                    message: `Hi ${email.split('@')[0]}! 🎉
+
+Your ultra high-quality photos from Brittany's 22nd birthday party have been processed!
+
+📱 TO GET YOUR PHOTOS:
+1. The ultra HD photo strip has been automatically downloaded to this iPad
+2. Look in the iPad's Downloads folder or Files app
+3. The file is named: brittany_22nd_birthday_ULTRA_HD_${Date.now()}.jpg
+4. You can AirDrop it to your phone, email it to yourself, or save it to cloud storage
+
+✨ These are maximum quality photos with enhanced zoom and crisp detail!
+
+Party Date: ${new Date().toLocaleDateString()}
+
+Enjoy your memories! 📸✨
+
+Need help? Ask the person running the photo booth to show you where the downloaded file is located.`,
+                    photo_strip: '', // No inline image to avoid size limits
+                    photo_strip_url: '',
+                    date: new Date().toLocaleDateString(),
+                    photo1: '',
+                    photo2: '',
+                    photo3: ''
+                });
+                
+                console.log('✅ Auto-download and email sent successfully!');
+                showStatusMessage(`🎉 Ultra HD photos downloaded to iPad and email sent to ${email}! Check Downloads folder.`, 'success');
+                emailInput.value = '';
+                
+            } catch (error) {
+                console.error('❌ Auto-download and email failed:', error);
+                showStatusMessage('Process failed: ' + error.message + '. Try manual download button.', 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        // Auto-download function that triggers iPad download
+        async function autoDownloadFile(imageDataUrl) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    
+                    img.onload = () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Convert to blob and trigger download
+                        canvas.toBlob((blob) => {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `brittany_22nd_birthday_ULTRA_HD_${Date.now()}.jpg`;
+                            
+                            // Make the download happen automatically
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            
+                            console.log('✅ Ultra HD photo strip auto-downloaded to iPad');
+                            resolve();
+                        }, 'image/jpeg', 0.98); // Maximum quality
+                    };
+                    
+                    img.onerror = () => {
+                        reject(new Error('Failed to process image for download'));
+                    };
+                    
+                    img.src = imageDataUrl;
+                    
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        // Alternative: Send download link via email with smaller preview
+        async function emailDownloadLink() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            if (!email || !capturedPhotos.length) {
+                showStatusMessage('Please enter email and take photos first', 'error');
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = '📧 Creating email...';
+            
+            try {
+                // Create a small preview for email
+                const previewStrip = await createTinyPhotoStrip(capturedPhotos);
+                
+                await emailjs.send('service_9n5lgms', 'template_js58xgg', {
+                    to_email: email,
+                    to_name: email.split('@')[0],
+                    from_name: "Brittany's 22nd Birthday Party",
+                    subject: `🎉 Your Photos from Brittany's 22nd Birthday!`,
+                    message: `Hi ${email.split('@')[0]}! 🎉
+
+Your photos from Brittany's 22nd birthday party are ready!
+
+📱 TO GET ULTRA HD QUALITY:
+1. Return to the photo booth iPad
+2. Click the "💾 Download Ultra HD Photos" button
+3. AirDrop the downloaded file to your phone
+
+Below is a small preview - the downloaded version is MUCH higher quality!
+
+Party Date: ${new Date().toLocaleDateString()}
+
+Enjoy your memories! 📸✨`,
+                    photo_strip: previewStrip,
+                    photo_strip_url: '',
+                    date: new Date().toLocaleDateString(),
+                    photo1: '',
+                    photo2: '',
+                    photo3: ''
+                });
+                
+                showStatusMessage(`📧 Instructions sent to ${email}! Use download button for ultra HD.`, 'success');
+                emailInput.value = '';
+                
+            } catch (error) {
+                showStatusMessage('Email failed: ' + error.message, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+        async function emailPhotosDirectly() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showStatusMessage('Please enter an email address', 'error');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showStatusMessage('Please enter a valid email address', 'error');
+                return;
+            }
+
+            if (!capturedPhotos.length) {
+                showStatusMessage('No photos to send. Take photos first!', 'error');
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = '📧 Creating Ultra HD Email...';
+            
+            try {
+                showStatusMessage('Creating ultra high-quality photo strip for email...', 'info');
+                
+                // Create the ultra HD photo strip
+                const ultraHDStrip = await createUltraHDPhotoStrip(capturedPhotos);
+                
+                button.textContent = '📧 Sending Ultra HD Email...';
+                showStatusMessage('Sending ultra high-quality photos directly to your email...', 'info');
+                
+                // Send email with photo strip as inline image
+                await emailjs.send('service_9n5lgms', 'template_js58xgg', {
+                    to_email: email,
+                    to_name: email.split('@')[0],
+                    from_name: "Brittany's 22nd Birthday Party",
+                    subject: `🎉 Your Ultra HD Photos from Brittany's 22nd Birthday!`,
+                    message: `Hi ${email.split('@')[0]}! 🎉
+
+Your ultra high-quality photos from Brittany's 22nd birthday party are attached below!
+
+These are the same maximum quality photos with enhanced zoom and crisp detail that you saw on the screen.
+
+Perfect for saving to your phone or sharing on social media! 📸✨
+
+Party Date: ${new Date().toLocaleDateString()}
+
+Enjoy your memories!`,
+                    photo_strip: ultraHDStrip, // Send as inline image
+                    photo_strip_url: '',
+                    date: new Date().toLocaleDateString(),
+                    photo1: capturedPhotos[0] ? capturedPhotos[0].data : '',
+                    photo2: capturedPhotos[1] ? capturedPhotos[1].data : '',
+                    photo3: capturedPhotos[2] ? capturedPhotos[2].data : ''
+                });
+                
+                console.log('✅ Ultra HD email sent successfully!');
+                showStatusMessage(`🎉 Ultra HD photos sent to ${email}! Check your inbox for maximum quality photos!`, 'success');
+                emailInput.value = '';
+                
+            } catch (error) {
+                console.error('❌ Direct email failed:', error);
+                
+                if (error.message.includes('too large') || error.message.includes('413')) {
+                    // If ultra HD is too large, try medium quality
+                    try {
+                        button.textContent = '📧 Sending Medium Quality...';
+                        showStatusMessage('Ultra HD too large, sending medium quality version...', 'info');
+                        
+                        const mediumQualityStrip = await createMediumQualityPhotoStrip(capturedPhotos);
+                        
+                        await emailjs.send('service_9n5lgms', 'template_js58xgg', {
+                            to_email: email,
+                            to_name: email.split('@')[0],
+                            from_name: "Brittany's 22nd Birthday Party",
+                            subject: `🎉 Your Photos from Brittany's 22nd Birthday!`,
+                            message: `Hi ${email.split('@')[0]}! 🎉
+
+Your photos from Brittany's 22nd birthday party are attached!
+
+For even higher quality, you can also use the download button on the tablet.
+
+Enjoy your memories! 📸✨`,
+                            photo_strip: mediumQualityStrip,
+                            photo_strip_url: '',
+                            date: new Date().toLocaleDateString(),
+                            photo1: '',
+                            photo2: '',
+                            photo3: ''
+                        });
+                        
+                        showStatusMessage(`📧 Medium quality photos sent to ${email}! For ultra HD, use download button.`, 'success');
+                        emailInput.value = '';
+                    } catch (mediumError) {
+                        showStatusMessage('Email failed. Please use download button for ultra HD photos.', 'error');
+                    }
+                } else {
+                    showStatusMessage('Email failed: ' + error.message + '. Please use download button.', 'error');
+                }
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        // Create medium quality version if ultra HD is too large for email
+        async function createMediumQualityPhotoStrip(photos) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Medium resolution for email compatibility
+                canvas.width = 300;
+                canvas.height = 900;
+                
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                ctx.fillStyle = '#3d2817';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Add the same styling as ultra HD but smaller
+                const photoSectionY = 60;
+                const photoWidth = canvas.width - 45;
+                const photoHeight = 180;
+                const photoSpacing = 12;
+                const photoPadding = 22;
+                
+                // Title section
+                const titleSectionY = canvas.height - 180;
+                ctx.fillStyle = '#d4b895';
+                ctx.textAlign = 'left';
+                
+                ctx.font = 'italic 48px serif';
+                ctx.fillText("Brittanys", 22, titleSectionY + 30);
+                
+                ctx.font = 'italic 45px serif';
+                ctx.fillText("22nd", 22, titleSectionY + 75);
+                
+                ctx.font = '100 36px serif';
+                ctx.letterSpacing = '12px';
+                ctx.fillText("BDAY", 22, titleSectionY + 120);
+                ctx.letterSpacing = '0px';
+                
+                let photosProcessed = 0;
+                const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
+                
+                if (sessionPhotos.length === 0) {
+                    resolve(canvas.toDataURL('image/jpeg', 0.85));
+                    return;
+                }
+                
+                sessionPhotos.forEach((photoData, index) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const y = photoSectionY + (index * (photoHeight + photoSpacing));
+                        
+                        // Border
+                        ctx.fillStyle = '#d4b895';
+                        ctx.fillRect(photoPadding - 3, y - 3, photoWidth + 6, photoHeight + 6);
+                        
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
+                        
+                        // Apply filter and zoom
+                        if (photoData.filter && photoData.filter !== 'none') {
+                            const tempCanvas = document.createElement('canvas');
+                            const tempCtx = tempCanvas.getContext('2d');
+                            
+                            tempCanvas.width = photoWidth * 2;
+                            tempCanvas.height = photoHeight * 2;
+                            
+                            tempCtx.imageSmoothingEnabled = true;
+                            tempCtx.imageSmoothingQuality = 'high';
+                            
+                            const filterValue = getCanvasFilter(photoData.filter);
+                            tempCtx.filter = filterValue;
+                            
+                            const zoomedWidth = tempCanvas.width * 1.3;
+                            const zoomedHeight = tempCanvas.height * 1.8;
+                            const offsetX = -(zoomedWidth - tempCanvas.width) / 2;
+                            const offsetY = -(zoomedHeight - tempCanvas.height) / 2;
+                            
+                            tempCtx.drawImage(img, offsetX, offsetY, zoomedWidth, zoomedHeight);
+                            
+                            ctx.filter = 'none';
+                            ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
+                        } else {
+                            const zoomedWidth = photoWidth * 1.3;
+                            const zoomedHeight = photoHeight * 1.8;
+                            const offsetX = photoPadding - (zoomedWidth - photoWidth) / 2;
+                            const offsetY = y - (zoomedHeight - photoHeight) / 2;
+                            
+                            ctx.drawImage(img, offsetX, offsetY, zoomedWidth, zoomedHeight);
+                        }
+                        
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            resolve(canvas.toDataURL('image/jpeg', 0.85));
+                        }
+                    };
+                    
+                    img.onerror = () => {
+                        photosProcessed++;
+                        if (photosProcessed === sessionPhotos.length) {
+                            resolve(canvas.toDataURL('image/jpeg', 0.85));
+                        }
+                    };
+                    
+                    img.src = photoData.data;
+                });
+            });
+        }
         async function uploadToCloudinaryAndEmail() {
             const emailInput = document.getElementById('emailInput');
             const email = emailInput.value.trim();
@@ -1718,6 +2119,9 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
         }
 
         // Make functions globally available
+        window.autoDownloadAndEmail = autoDownloadAndEmail;
+        window.emailDownloadLink = emailDownloadLink;
+        window.emailPhotosDirectly = emailPhotosDirectly;
         window.testEmailTemplate = testEmailTemplate;
         window.testCloudinaryConnection = testCloudinaryConnection;
         window.uploadToCloudinaryAndEmail = uploadToCloudinaryAndEmail;
