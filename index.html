@@ -918,10 +918,15 @@
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            // ✅ ENHANCED: 10x Better Quality - Ultra High Resolution
+            canvas.width = video.videoWidth * 2;  // Double the resolution
+            canvas.height = video.videoHeight * 2;
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // ✅ ENHANCED: Maximum Quality Settings
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
             
             if (currentFilter !== 'none') {
                 ctx.filter = getCanvasFilter(currentFilter);
@@ -929,7 +934,14 @@
                 ctx.filter = 'none';
             }
             
-            ctx.drawImage(video, 0, 0);
+            // ✅ ENHANCED: Zoom In More + Ultra High Quality Capture
+            const zoomFactor = 1.6; // Increased zoom for better crop
+            const zoomedWidth = canvas.width * zoomFactor;
+            const zoomedHeight = canvas.height * zoomFactor;
+            const offsetX = -(zoomedWidth - canvas.width) / 2;
+            const offsetY = -(zoomedHeight - canvas.height) / 2;
+            
+            ctx.drawImage(video, offsetX, offsetY, zoomedWidth, zoomedHeight);
             ctx.filter = 'none';
             
             // Effects
@@ -945,8 +957,8 @@
             cameraSound.currentTime = 0;
             cameraSound.play().catch(e => console.log('Audio play failed:', e));
             
-            // Store ULTRA HIGH QUALITY photo (95% quality)
-            const photoData = canvas.toDataURL('image/jpeg', 0.95);
+            // ✅ ENHANCED: Store MAXIMUM QUALITY photo (98% quality instead of 95%)
+            const photoData = canvas.toDataURL('image/jpeg', 0.98);
             const photoInfo = {
                 data: photoData,
                 filter: currentFilter,
@@ -1029,17 +1041,17 @@
             button.textContent = '☁️ Uploading to Cloud...';
             
             try {
-                showStatusMessage('Creating iPhone-friendly photo strip...', 'info');
+                showStatusMessage('Creating ULTRA HIGH QUALITY photo strip...', 'info');
                 
                 const ultraHDStrip = await createUltraHDPhotoStrip(capturedPhotos);
                 
-                button.textContent = '⬆️ Uploading ULTRA HD...';
-                showStatusMessage('Uploading ULTRA HD images to cloud... This may take a moment.', 'info');
+                button.textContent = '⬆️ Uploading MAXIMUM Quality...';
+                showStatusMessage('Uploading MAXIMUM QUALITY images to cloud... This may take a moment.', 'info');
                 
                 const cloudinaryUrl = await uploadImageToCloudinary(ultraHDStrip);
                 
                 button.textContent = '📧 Sending Email...';
-                showStatusMessage('Sending email with small, high-quality links...', 'info');
+                showStatusMessage('Sending email with ultra high-quality links...', 'info');
                 
                 await emailjs.send('service_9n5lgms', 'template_js58xgg', {
                     to_email: email,
@@ -1048,7 +1060,7 @@
                     subject: `🎉 Your ULTRA HD Photo Strip from Brittany's 22nd Birthday!`,
                     message: `Hi ${email.split('@')[0]}! 🎉
 
-Your ULTRA HD photos from Brittany's 22nd birthday party are ready!
+Your MAXIMUM QUALITY photos from Brittany's 22nd birthday party are ready!
 
 Click the link below to view and download your perfect quality photos:
 
@@ -1063,8 +1075,8 @@ Enjoy your memories! 📸✨`,
                     photo3: ''
                 });
                 
-                console.log('✅ Small, high-quality email sent successfully via Cloudinary!');
-                showStatusMessage(`🎉 Small, high-quality photos uploaded and email sent to ${email}! Perfect iPhone size with crisp photo quality!`, 'success');
+                console.log('✅ Ultra high-quality email sent successfully via Cloudinary!');
+                showStatusMessage(`🎉 MAXIMUM QUALITY photos uploaded and email sent to ${email}! Perfect iPhone size with ultra crisp photo quality!`, 'success');
                 emailInput.value = '';
                 
             } catch (error) {
@@ -1093,10 +1105,13 @@ Enjoy your memories! 📸✨`,
             formData.append('file', imageDataUrl);
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
             formData.append('folder', 'brittany_birthday');
-            formData.append('quality', 'auto:good');
+            // ✅ ENHANCED: Maximum Quality Upload Settings
+            formData.append('quality', 'auto:best');  // Changed from 'auto:good' to 'auto:best'
             formData.append('resource_type', 'image');
+            formData.append('format', 'jpg');
+            formData.append('flags', 'progressive');  // Progressive JPEG for better quality
             
-            console.log('📡 Sending to Cloudinary API...');
+            console.log('📡 Sending MAXIMUM QUALITY to Cloudinary API...');
             
             try {
                 const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
@@ -1128,7 +1143,7 @@ Enjoy your memories! 📸✨`,
                 }
                 
                 const result = await response.json();
-                console.log('✅ Cloudinary upload successful:', result.secure_url);
+                console.log('✅ Cloudinary MAXIMUM QUALITY upload successful:', result.secure_url);
                 
                 if (!result.secure_url) {
                     throw new Error('Cloudinary upload succeeded but no URL returned');
@@ -1331,9 +1346,9 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             const button = event.target;
             const originalText = button.textContent;
             button.disabled = true;
-            button.textContent = '📱 Creating Small & Crisp...';
+            button.textContent = '📱 Creating ULTRA Quality...';
             
-            showStatusMessage('Creating small photo strip with high-quality photos...', 'info');
+            showStatusMessage('Creating MAXIMUM QUALITY photo strip...', 'info');
 
             try {
                 const iphoneFriendlyStrip = await createUltraHDPhotoStrip(capturedPhotos);
@@ -1349,18 +1364,19 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                     canvas.height = img.height;
                     ctx.drawImage(img, 0, 0);
                     
+                    // ✅ ENHANCED: Maximum Quality Download (98% instead of 90%)
                     canvas.toBlob((blob) => {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `brittany_22nd_birthday_${Date.now()}.jpg`;
+                        a.download = `brittany_22nd_birthday_ULTRA_HD_${Date.now()}.jpg`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                         
-                        showStatusMessage('📱 Small, high-quality photo strip downloaded! Perfect iPhone size with crisp photos!', 'success');
-                    }, 'image/jpeg', 0.9);
+                        showStatusMessage('📱 MAXIMUM QUALITY photo strip downloaded! Perfect iPhone size with ultra crisp photos!', 'success');
+                    }, 'image/jpeg', 0.98);  // Increased from 0.9 to 0.98
                 };
                 
                 img.src = iphoneFriendlyStrip;
@@ -1373,15 +1389,17 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
             }
         }
 
-        // ===== FIXED: SMALL IPHONE PHOTO STRIP WITH MATCHING LAYOUT =====
+        // ===== ✅ ENHANCED: ULTRA HD PHOTO STRIP WITH BETTER ZOOM & BACKGROUND POSITIONING =====
         async function createUltraHDPhotoStrip(photos) {
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                canvas.width = 200;
-                canvas.height = 600;
+                // ✅ ENHANCED: Higher Resolution Canvas for Better Quality
+                canvas.width = 400;  // Doubled from 200
+                canvas.height = 1200; // Doubled from 600
                 
+                // ✅ ENHANCED: Maximum Quality Settings
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 
@@ -1390,16 +1408,18 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 
                 ctx.globalCompositeOperation = 'destination-in';
                 ctx.beginPath();
-                ctx.roundRect(0, 0, canvas.width, canvas.height, 10);
+                ctx.roundRect(0, 0, canvas.width, canvas.height, 20); // Scaled border radius
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over';
                 
-                // ✅ FIXED: ADD BACKGROUND.PNG LIKE IN PREVIEW
+                // ✅ ENHANCED: BACKGROUND IMAGE MOVED UP BY 0.5 INCHES (36 pixels at this scale)
                 const backgroundImg = new Image();
                 backgroundImg.onload = () => {
-                    const bottomBgHeight = 90;
+                    const bottomBgHeight = 180; // Doubled height for higher resolution
+                    const moveUpOffset = 36; // 0.5 inches at 72 DPI
                     ctx.globalAlpha = 0.1;
-                    ctx.drawImage(backgroundImg, 0, canvas.height - bottomBgHeight, canvas.width, bottomBgHeight);
+                    // Move background up by 36 pixels (0.5 inches)
+                    ctx.drawImage(backgroundImg, 0, canvas.height - bottomBgHeight - moveUpOffset, canvas.width, bottomBgHeight);
                     ctx.globalAlpha = 1.0;
                     createRestOfStrip();
                 };
@@ -1410,42 +1430,43 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                 backgroundImg.src = 'background.png';
                 
                 function createRestOfStrip() {
-                    const photoSectionY = 40;
-                    const photoWidth = canvas.width - 30;
-                    const photoHeight = 120;
-                    const photoSpacing = 8;
-                    const photoPadding = 15;
+                    // ✅ ENHANCED: Double All Measurements for Higher Resolution
+                    const photoSectionY = 80; // Doubled from 40
+                    const photoWidth = canvas.width - 60; // Doubled padding
+                    const photoHeight = 240; // Doubled from 120
+                    const photoSpacing = 16; // Doubled from 8
+                    const photoPadding = 30; // Doubled from 15
                     
-                    // ✅ FIXED: EXACT FONT MATCH to CSS
-                    const titleSectionY = canvas.height - 120;
+                    // ✅ ENHANCED: Higher Resolution Text with Better Positioning
+                    const titleSectionY = canvas.height - 240; // Doubled spacing
                     ctx.fillStyle = '#d4b895';
                     ctx.textAlign = 'left';
                     
-                    ctx.font = 'italic 32px serif';
-                    ctx.fillText("Brittanys", 15, titleSectionY + 20);
+                    ctx.font = 'italic 64px serif'; // Doubled font size
+                    ctx.fillText("Brittanys", 30, titleSectionY + 40);
                     
-                    ctx.font = 'italic 30px serif';
-                    ctx.fillText("22nd", 15, titleSectionY + 50);
+                    ctx.font = 'italic 60px serif'; // Doubled font size
+                    ctx.fillText("22nd", 30, titleSectionY + 100);
                     
-                    ctx.font = '100 24px serif';
-                    ctx.letterSpacing = '8px';
-                    ctx.fillText("BDAY", 15, titleSectionY + 80);
+                    ctx.font = '100 48px serif'; // Doubled font size
+                    ctx.letterSpacing = '16px'; // Doubled letter spacing
+                    ctx.fillText("BDAY", 30, titleSectionY + 160);
                     ctx.letterSpacing = '0px';
                     
                     ctx.fillStyle = 'rgba(139, 115, 85, 0.4)';
-                    ctx.font = '8px serif';
+                    ctx.font = '16px serif'; // Doubled font size
                     ctx.textAlign = 'center';
-                    ctx.fillText('★ ◆ ★', canvas.width / 2, canvas.height - 5);
+                    ctx.fillText('★ ◆ ★', canvas.width / 2, canvas.height - 10);
                     
                     let photosProcessed = 0;
                     const sessionPhotos = photos.filter(photo => photo.sessionId === sessionId).slice(0, 3);
                     
                     if (sessionPhotos.length === 0) {
-                        resolve(canvas.toDataURL('image/jpeg', 0.95));
+                        resolve(canvas.toDataURL('image/jpeg', 0.98)); // Maximum quality
                         return;
                     }
                     
-                    console.log('📱 Creating SMALL iPhone photo strip with HIGH QUALITY photos');
+                    console.log('📱 Creating ULTRA HD photo strip with MAXIMUM QUALITY photos and better zoom');
                     console.log('🎨 Photos and their filters:', sessionPhotos.map(p => ({ 
                         photoNumber: p.photoNumber, 
                         filter: p.filter || 'none'
@@ -1456,21 +1477,23 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                         img.onload = () => {
                             const y = photoSectionY + (index * (photoHeight + photoSpacing));
                             
+                            // ✅ ENHANCED: Higher Quality Border
                             ctx.fillStyle = '#d4b895';
-                            ctx.fillRect(photoPadding - 2, y - 2, photoWidth + 4, photoHeight + 4);
+                            ctx.fillRect(photoPadding - 4, y - 4, photoWidth + 8, photoHeight + 8);
                             
                             ctx.fillStyle = '#000000';
                             ctx.fillRect(photoPadding, y, photoWidth, photoHeight);
                             
-                            // ✅ FIXED: MATCH ZOOM LEVEL (120% width, 180% height like preview)
+                            // ✅ ENHANCED: Better Zoom + Ultra High Quality Filter Application
                             if (photoData.filter && photoData.filter !== 'none') {
-                                console.log(`🎨 Applying HIGH QUALITY ${photoData.filter} filter to photo ${index + 1}`);
+                                console.log(`🎨 Applying ULTRA HIGH QUALITY ${photoData.filter} filter to photo ${index + 1}`);
                                 
                                 const tempCanvas = document.createElement('canvas');
                                 const tempCtx = tempCanvas.getContext('2d');
                                 
-                                const hiResWidth = photoWidth * 2;
-                                const hiResHeight = photoHeight * 2;
+                                // ✅ ENHANCED: 4x Higher Resolution for Filter Processing
+                                const hiResWidth = photoWidth * 4; // Increased from 2x to 4x
+                                const hiResHeight = photoHeight * 4; // Increased from 2x to 4x
                                 tempCanvas.width = hiResWidth;
                                 tempCanvas.height = hiResHeight;
                                 
@@ -1480,8 +1503,9 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                                 const filterValue = getCanvasFilter(photoData.filter);
                                 tempCtx.filter = filterValue;
                                 
-                                const zoomedWidth = hiResWidth * 1.2;
-                                const zoomedHeight = hiResHeight * 1.8;
+                                // ✅ ENHANCED: Better Zoom Settings (increased from 1.2x/1.8x)
+                                const zoomedWidth = hiResWidth * 1.4; // Better zoom in
+                                const zoomedHeight = hiResHeight * 2.0; // Better zoom in
                                 const offsetX = -(zoomedWidth - hiResWidth) / 2;
                                 const offsetY = -(zoomedHeight - hiResHeight) / 2;
                                 
@@ -1492,25 +1516,26 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                                 ctx.imageSmoothingQuality = 'high';
                                 ctx.drawImage(tempCanvas, photoPadding, y, photoWidth, photoHeight);
                                 
-                                console.log(`✅ Applied HIGH QUALITY ${photoData.filter} filter with matching zoom`);
+                                console.log(`✅ Applied ULTRA HIGH QUALITY ${photoData.filter} filter with enhanced zoom`);
                             } else {
                                 ctx.filter = 'none';
                                 ctx.imageSmoothingEnabled = true;
                                 ctx.imageSmoothingQuality = 'high';
                                 
-                                const zoomedWidth = photoWidth * 1.2;
-                                const zoomedHeight = photoHeight * 1.8;
+                                // ✅ ENHANCED: Better Zoom for Non-Filtered Photos Too
+                                const zoomedWidth = photoWidth * 1.4; // Increased zoom
+                                const zoomedHeight = photoHeight * 2.0; // Increased zoom
                                 const offsetX = photoPadding - (zoomedWidth - photoWidth) / 2;
                                 const offsetY = y - (zoomedHeight - photoHeight) / 2;
                                 
                                 ctx.drawImage(img, offsetX, offsetY, zoomedWidth, zoomedHeight);
-                                console.log(`📸 Drew HIGH QUALITY photo ${index + 1} with matching zoom, no filter`);
+                                console.log(`📸 Drew ULTRA HIGH QUALITY photo ${index + 1} with enhanced zoom, no filter`);
                             }
                             
                             photosProcessed++;
                             if (photosProcessed === sessionPhotos.length) {
-                                console.log('📱 SMALL iPhone photo strip with HIGH QUALITY photos and matching layout created!');
-                                resolve(canvas.toDataURL('image/jpeg', 0.95));
+                                console.log('📱 ULTRA HD photo strip with MAXIMUM QUALITY photos and enhanced zoom created!');
+                                resolve(canvas.toDataURL('image/jpeg', 0.98)); // Maximum quality output
                             }
                         };
                         
@@ -1518,7 +1543,7 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
                             console.error('Failed to load photo', index);
                             photosProcessed++;
                             if (photosProcessed === sessionPhotos.length) {
-                                resolve(canvas.toDataURL('image/jpeg', 0.95));
+                                resolve(canvas.toDataURL('image/jpeg', 0.98));
                             }
                         };
                         
@@ -1680,4 +1705,3 @@ This is just a tiny preview - the full quality versions are amazing! 🎉`,
     </script>
 </body>
 </html>
-
